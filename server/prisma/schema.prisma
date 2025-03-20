@@ -1,0 +1,152 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "mongodb"
+    url = env("DATABASE_URL")
+}
+
+model User {
+  id               String      @id @default(auto()) @map("_id") @db.ObjectId
+  name             String?
+  email            String      @unique
+  image            String?
+  favResidenciesID String[]    @db.ObjectId
+  ownedResidencies Residency[] @relation("Owner")
+
+  // Add a plain-text password field
+  password         String?
+
+  role             Role        @default(USER)
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model Residency {
+    id                  String   @id @default(auto()) @map("_id") @db.ObjectId
+    owner               User     @relation("Owner", fields: [userEmail], references: [email])
+    userEmail           String
+
+    // Property Details
+    ownerId             Int?
+    title               String
+    featured            String?
+    featuredWeight      Int?
+    description         String
+    legalDescription    String? 
+    direction           String?
+    status              String?
+    type                String?
+    zoning              String?
+    restrictions        String?
+    mobileHomeFriendly  String?
+    hoaPoa              String?
+    hoaFee              Float? 
+    hoaPaymentTerms     String? 
+    survey              String?
+    notes               String?
+
+    // Address and Location
+    apnOrPin            String   @unique                     // APN/PIN must be unique
+    streetAddress       String
+    city                String
+    county              String
+    state               String
+    zip                 String
+    latitude            Float                              // Latitude for geolocation
+    longitude           Float                               // Longitude for geolocation
+    area                String
+    landIdLink          String?
+
+    // Physical Attributes
+    sqft                Int
+    acre                Float?
+    imageUrls           Json?
+
+    // Pricing
+    askingPrice         Float
+    minPrice            Float
+    disPrice            Float?
+  
+
+    // Financing & Pricing Calculations
+    financing          String?
+    tax                Float?
+    serviceFee         Float?
+    term               Int? 
+    hoaMonthly         Float?
+    interestOne        Float?
+    interestTwo        Float?
+    interestThree      Float?
+    monthlyPaymentOne  Float?
+    monthlyPaymentTwo  Float?
+    monthlyPaymentThree Float?
+    downPaymentOne     Float?
+    downPaymentTwo     Float?
+    downPaymentThree   Float?
+    loanAmountOne      Float?
+    loanAmountTwo      Float?
+    loanAmountThree    Float?
+    purchasePrice      Float?
+    financedPrice      Float?
+
+    
+
+    // Utilities and Infrastructure
+    water               String?
+    sewer               String?
+    electric            String?
+    roadCondition       String?
+    floodplain          String?
+
+    // Miscellaneous
+    ltag                String? 
+    rtag                String?   
+    landId              String
+    viewCount           Int?      @default(0)                 // View count for unique views
+
+    // Timestamps
+    createdAt           DateTime @default(now())
+    updatedAt           DateTime @updatedAt
+
+    // Unique Constraints
+    @@unique(fields: [apnOrPin, streetAddress, city, state, userEmail])  // Prevent duplicate listings by the same user
+    @@unique(fields: [latitude, longitude])                              // Ensure no duplicate geolocations
+}
+
+
+
+model Offer {
+    id          String   @id @default(auto()) @map("_id") @db.ObjectId
+    propertyId  String
+    offeredPrice Float
+    timestamp   DateTime @default(now())
+    buyerId     String   @db.ObjectId 
+    buyer       Buyer    @relation("BuyerOffers", fields: [buyerId], references: [id])
+}
+
+model Buyer {
+    id         String   @id @default(auto()) @map("_id") @db.ObjectId
+    email      String   @unique
+    phone      String   @unique
+    buyerType  BuyerType
+    firstName  String
+    lastName   String
+    offers     Offer[] @relation("BuyerOffers")
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
+}
+
+enum BuyerType {
+    CashBuyer
+    Builder
+    Developer
+    Realtor
+    Investor
+    Wholesaler
+} 
+
