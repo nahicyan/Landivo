@@ -58,9 +58,7 @@ export default function Qualify() {
             property_title: data.title || "",
             property_location: `${data.city}, ${data.state}` || "",
             financing_available: data.financing === "Available",
-            monthly_payment_one: data.monthlyPaymentOne,
-            monthly_payment_two: data.monthlyPaymentTwo,
-            monthly_payment_three: data.monthlyPaymentThree,
+            propertyData: data, // Store the entire property data object
           }));
           
           setLoading(false);
@@ -217,7 +215,6 @@ export default function Qualify() {
         <DownPayment 
           surveyData={surveyData} 
           updateSurveyData={updateSurveyData} 
-          propertyData={propertyData}
           onNext={nextStep} 
           onBack={prevStep}
         />
@@ -509,27 +506,89 @@ export default function Qualify() {
     );
   }
 
-// Property Info Header
-const PropertyHeader = () => {
-  if (!propertyData) return null;
-  
-  return (
-    <div className="mb-8 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-      <h1 
-        className="text-lg font-semibold text-[#3f4f24]"
-        dangerouslySetInnerHTML={{ __html: propertyData.title }}
-      />
-      <div className="flex items-center justify-between mt-2">
-        <p className="text-gray-600">
-          {propertyData.streetAddress}, {propertyData.city}, {propertyData.state}
-        </p>
-        <p className="font-semibold text-[#D4A017]">
-          ${propertyData.financedPrice?.toLocaleString() || "N/A"}
-        </p>
+  // Property Info Header
+  const PropertyHeader = () => {
+    if (!propertyData) return null;
+    
+    return (
+      <div className="mb-8 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+        <h1 
+          className="text-lg font-semibold text-[#3f4f24]"
+          dangerouslySetInnerHTML={{ __html: propertyData.title }}
+        />
+        <div className="flex items-center justify-between mt-2">
+          <p className="text-gray-600">
+            {propertyData.streetAddress}, {propertyData.city}, {propertyData.state}
+          </p>
+          <p className="font-semibold text-[#D4A017]">
+            ${propertyData.askingPrice?.toLocaleString() || "N/A"}
+          </p>
+        </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
+
+  // Enhanced Debug Panel with Payment Plan Information
+  const EnhancedDebugPanel = () => {
+    const paymentPlanData = {
+      selected_plan: surveyData.selected_plan || "Not selected",
+      down_payment: surveyData.down_payment || "Not set",
+      interest_rate: surveyData.interest_rate || "Not set",
+      monthly_payment: surveyData.monthly_payment || "Not set",
+    };
+
+    return (
+      <div className="mt-8 p-4 bg-gray-100 rounded-lg">
+        <details>
+          <summary className="font-semibold cursor-pointer">Debug: Current Survey Data</summary>
+          <pre className="mt-2 text-xs overflow-auto max-h-60">
+            {JSON.stringify(surveyData, null, 2)}
+          </pre>
+        </details>
+        
+        <details className="mt-4">
+          <summary className="font-semibold cursor-pointer">Debug: Payment Plan Data</summary>
+          <div className="mt-2 p-3 bg-white rounded border border-gray-300">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="text-left p-2">Data Field</th>
+                  <th className="text-left p-2">Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="p-2 border-t">Selected Plan</td>
+                  <td className="p-2 border-t">{paymentPlanData.selected_plan}</td>
+                </tr>
+                <tr>
+                  <td className="p-2 border-t">Down Payment</td>
+                  <td className="p-2 border-t">${paymentPlanData.down_payment}</td>
+                </tr>
+                <tr>
+                  <td className="p-2 border-t">Interest Rate</td>
+                  <td className="p-2 border-t">{paymentPlanData.interest_rate}%</td>
+                </tr>
+                <tr>
+                  <td className="p-2 border-t">Monthly Payment</td>
+                  <td className="p-2 border-t">${paymentPlanData.monthly_payment}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </details>
+        
+        {propertyData && (
+          <details className="mt-4">
+            <summary className="font-semibold cursor-pointer">Debug: Property Data</summary>
+            <pre className="mt-2 text-xs overflow-auto max-h-60">
+              {JSON.stringify(propertyData, null, 2)}
+            </pre>
+          </details>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="max-w-6xl mx-auto p-6 bg-[#FDF8F2] min-h-screen">
@@ -553,25 +612,8 @@ const PropertyHeader = () => {
         </motion.div>
       </AnimatePresence>
       
-      {/* Debug Panel (visible only in development) */}
-      {import.meta.env.DEV && (
-        <div className="mt-8 p-4 bg-gray-100 rounded-lg">
-          <details>
-            <summary className="font-semibold cursor-pointer">Debug: Current Survey Data</summary>
-            <pre className="mt-2 text-xs overflow-auto max-h-60">
-              {JSON.stringify(surveyData, null, 2)}
-            </pre>
-            {propertyData && (
-              <>
-                <summary className="font-semibold cursor-pointer mt-4">Debug: Property Data</summary>
-                <pre className="mt-2 text-xs overflow-auto max-h-60">
-                  {JSON.stringify(propertyData, null, 2)}
-                </pre>
-              </>
-            )}
-          </details>
-        </div>
-      )}
+      {/* Enhanced Debug Panel (visible only in development) */}
+      {import.meta.env.DEV && <EnhancedDebugPanel />}
     </div>
   );
 }
