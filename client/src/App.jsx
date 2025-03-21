@@ -27,6 +27,7 @@ import OfferTable from "./components/OfferTable/OfferTable";
 import CreateUser from "./pages/CreateUser/CreateUser";
 import ScrollToTop from "./components/ScrollToTop/ScrollToTop";
 import Sell from "./pages/Sell/Sell";
+import Qualify from "./pages/Qualify/Qualify";
 
 
 // Create the React Query client
@@ -62,6 +63,7 @@ function App() {
                   <Route path="/SanAntonio" element={<SanAntonio/>} />
                   <Route path="/OtherLands" element={<OtherLands/>} />
                   <Route path="/add-property" element={<AddProperty />} />
+                  <Route path="/qualify" element={<Qualify />} />
                   <Route path="/edit-property/:propertyId" element={<EditProperty />} />
                 </Route>
               </Routes>
