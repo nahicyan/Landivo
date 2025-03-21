@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import axios from "axios";
+import { getProperty } from "@/utils/api";
 
 // Import all survey components
 import LanguageSelection from "@/components/FinanceQualify/LanguageSelection";
@@ -28,16 +28,57 @@ import CurrentCreditScore from "@/components/FinanceQualify/CurrentCreditScore";
 import LiensOrJudgments from "@/components/FinanceQualify/LiensOrJudgments";
 import UserInfo from "@/components/FinanceQualify/UserInfo";
 import SurveyCompletion from "@/components/FinanceQualify/SurveyCompletion";
+import { PuffLoader } from "react-spinners";
 
 export default function Qualify() {
   const navigate = useNavigate();
+  const { propertyId } = useParams(); // Get property ID from URL
   const [currentStep, setCurrentStep] = useState(0);
+  const [propertyData, setPropertyData] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [surveyData, setSurveyData] = useState({
     language: "en",
-    property_price: "100000", // Default value for testing
     disqualificationFlag: false,
-    // Other survey fields will be populated as user progresses
+    // Will be populated with property data when fetched
   });
+
+  // Fetch property data if propertyId is available
+  useEffect(() => {
+    if (propertyId) {
+      setLoading(true);
+      getProperty(propertyId)
+        .then((data) => {
+          setPropertyData(data);
+          
+          // Initialize survey data with property information
+          setSurveyData(prev => ({
+            ...prev,
+            property_id: propertyId,
+            property_price: data.askingPrice?.toString() || "100000",
+            property_title: data.title || "",
+            property_location: `${data.city}, ${data.state}` || "",
+            financing_available: data.financing === "Available",
+            monthly_payment_one: data.monthlyPaymentOne,
+            monthly_payment_two: data.monthlyPaymentTwo,
+            monthly_payment_three: data.monthlyPaymentThree,
+          }));
+          
+          setLoading(false);
+        })
+        .catch((err) => {
+          console.error("Error fetching property:", err);
+          setLoading(false);
+          // Set default values in case of error
+          setSurveyData(prev => ({
+            ...prev,
+            property_price: "100000",
+          }));
+        });
+    } else {
+      // No propertyId, just remove loading state
+      setLoading(false);
+    }
+  }, [propertyId]);
 
   // Update survey data
   const updateSurveyData = (key, value) => {
@@ -176,6 +217,7 @@ export default function Qualify() {
         <DownPayment 
           surveyData={surveyData} 
           updateSurveyData={updateSurveyData} 
+          propertyData={propertyData}
           onNext={nextStep} 
           onBack={prevStep}
         />
@@ -377,10 +419,10 @@ export default function Qualify() {
     
     // Define progress stages with their corresponding step ranges
     const stages = [
-      { name: "Property Info", range: [0, 6] }, // Steps 0-6
-      { name: "Financial", range: [7, 14] },    // Steps 7-14
-      { name: "Credit", range: [15, 19] },      // Steps 15-19
-      { name: "Complete", range: [20, 21] }     // Steps 20-21
+      { name: "Property", range: [0, 6] },    // Steps 0-6
+      { name: "Financial", range: [7, 14] },  // Steps 7-14
+      { name: "Credit", range: [15, 19] },    // Steps 15-19
+      { name: "Complete", range: [20, 21] }   // Steps 20-21
     ];
     
     // Determine current stage
@@ -458,8 +500,41 @@ export default function Qualify() {
     }
   }, [currentStep, surveyData]);
 
+  // Show loading state while fetching property data
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-[60vh]">
+        <PuffLoader size={80} color="#404040" />
+      </div>
+    );
+  }
+
+  // Property Info Header
+  const PropertyHeader = () => {
+    if (!propertyData) return null;
+    
+    return (
+      <div className="mb-8 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+        <h1 className="text-lg font-semibold text-[#3f4f24]">
+          Pre-qualify for: {propertyData.title || `Property #${propertyId}`}
+        </h1>
+        <div className="flex items-center justify-between mt-2">
+          <p className="text-gray-600">
+            {propertyData.streetAddress}, {propertyData.city}, {propertyData.state}
+          </p>
+          <p className="font-semibold text-[#D4A017]">
+            ${propertyData.askingPrice?.toLocaleString() || "N/A"}
+          </p>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="max-w-6xl mx-auto p-6 bg-[#FDF8F2] min-h-screen">
+      {/* Property Header if propertyId is available */}
+      {propertyId && <PropertyHeader />}
+      
       {/* Progress Indicator */}
       <StepIndicator currentStep={currentStep} />
 
@@ -485,6 +560,14 @@ export default function Qualify() {
             <pre className="mt-2 text-xs overflow-auto max-h-60">
               {JSON.stringify(surveyData, null, 2)}
             </pre>
+            {propertyData && (
+              <>
+                <summary className="font-semibold cursor-pointer mt-4">Debug: Property Data</summary>
+                <pre className="mt-2 text-xs overflow-auto max-h-60">
+                  {JSON.stringify(propertyData, null, 2)}
+                </pre>
+              </>
+            )}
           </details>
         </div>
       )}

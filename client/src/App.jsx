@@ -30,6 +30,7 @@ import Sell from "./pages/Sell/Sell";
 import Qualify from "./pages/Qualify/Qualify";
 
 
+
 // Create the React Query client
 const queryClient = new QueryClient();
 
@@ -50,6 +51,7 @@ function App() {
                     <Route index element={<Properties />} />
                     <Route path=":propertyId" element={<Property />} />
                     <Route path=":propertyId/offers" element={<OfferTable />} />
+                    <Route path=":propertyId/qualify" element={<Qualify />} />
                   </Route>
                   <Route path="/admin" element={<Admin />} />
                   <Route path="/sell" element={<Sell />} />
