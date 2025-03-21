@@ -1,5 +1,3 @@
-"use client";
-
 import React from "react";
 import { 
   Card, 
@@ -12,12 +10,6 @@ export default function GrossAnnualIncome({ surveyData, updateSurveyData, onNext
   // Handle selection
   const handleSelection = (income) => {
     updateSurveyData("gross_annual_income", income);
-    
-    // Set disqualification flag for lower income tiers
-    if (["Less than $30,000", "$30,000 - $50,000", "$50,000 - $75,000"].includes(income)) {
-      updateSurveyData("disqualificationFlag", true);
-    }
-    
     onNext();
   };
 
@@ -50,42 +42,35 @@ export default function GrossAnnualIncome({ surveyData, updateSurveyData, onNext
   // Get translations based on selected language
   const t = translations[surveyData.language || "en"];
 
-  // Define income ranges with their corresponding translations and UI classes
+  // Define income ranges with their corresponding translations
   const incomeRanges = [
     { 
       value: "Less than $30,000", 
-      label: t.lessThan30k,
-      classes: "bg-white hover:bg-[#f0f0f0] text-[#d03c0b] border-[#d03c0b]" 
+      label: t.lessThan30k
     },
     { 
       value: "$30,000 - $50,000", 
-      label: t.between30kAnd50k,
-      classes: "bg-white hover:bg-[#f0f0f0] text-[#d03c0b] border-[#d03c0b]"
+      label: t.between30kAnd50k
     },
     { 
       value: "$50,000 - $75,000", 
-      label: t.between50kAnd75k,
-      classes: "bg-white hover:bg-[#f0f0f0] text-[#d03c0b] border-[#d03c0b]"
+      label: t.between50kAnd75k
     },
     { 
       value: "$75,000 - $100,000", 
-      label: t.between75kAnd100k,
-      classes: "bg-white hover:bg-[#f4f7ee] text-[#3f4f24] border-[#3f4f24]"
+      label: t.between75kAnd100k
     },
     { 
       value: "$100,000 - $150,000", 
-      label: t.between100kAnd150k,
-      classes: "bg-white hover:bg-[#f4f7ee] text-[#3f4f24] border-[#3f4f24]"
+      label: t.between100kAnd150k
     },
     { 
       value: "$150,000 - $200,000", 
-      label: t.between150kAnd200k,
-      classes: "bg-white hover:bg-[#f4f7ee] text-[#3f4f24] border-[#3f4f24]"
+      label: t.between150kAnd200k
     },
     { 
       value: "Over $200,000", 
-      label: t.moreThan200k,
-      classes: "bg-white hover:bg-[#f4f7ee] text-[#3f4f24] border-[#3f4f24]"
+      label: t.moreThan200k
     }
   ];
 
@@ -101,7 +86,7 @@ export default function GrossAnnualIncome({ surveyData, updateSurveyData, onNext
             {incomeRanges.map((income) => (
               <Button
                 key={income.value}
-                className={`py-4 px-4 text-base rounded-lg transition-all duration-200 hover:shadow-md flex items-center justify-start ${income.classes}`}
+                className="py-4 px-4 bg-white hover:bg-[#f4f7ee] text-[#3f4f24] text-base rounded-lg border border-[#3f4f24] transition-all duration-200 hover:shadow-md flex items-center justify-start"
                 onClick={() => handleSelection(income.value)}
               >
                 <DollarSignIcon className="w-5 h-5 mr-2" />

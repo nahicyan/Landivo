@@ -1,23 +1,14 @@
-"use client";
-
 import React from "react";
 import { 
   Card, 
   CardContent 
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2Icon, XCircleIcon } from "lucide-react";
 
 export default function DeclaredBankruptcy({ surveyData, updateSurveyData, onNext, onBack }) {
   // Handle selection
   const handleSelection = (choice) => {
     updateSurveyData("declared_bankruptcy", choice);
-    
-    // Set disqualification flag if has declared bankruptcy
-    if (choice === "Yes") {
-      updateSurveyData("disqualificationFlag", true);
-    }
-    
     onNext();
   };
 
@@ -50,18 +41,16 @@ export default function DeclaredBankruptcy({ surveyData, updateSurveyData, onNex
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8 max-w-md mx-auto">
             <Button
-              className="py-6 px-4 bg-white hover:bg-[#f0f0f0] text-[#d03c0b] text-lg rounded-lg border border-[#d03c0b] transition-all duration-200 hover:shadow-md flex items-center justify-center"
+              className="py-6 px-4 bg-white hover:bg-[#f4f7ee] text-[#3f4f24] text-lg rounded-lg border border-[#3f4f24] transition-all duration-200 hover:shadow-md"
               onClick={() => handleSelection("Yes")}
             >
-              <XCircleIcon className="w-5 h-5 mr-2 text-[#d03c0b]" />
               {t.yes}
             </Button>
             
             <Button
-              className="py-6 px-4 bg-white hover:bg-[#f4f7ee] text-[#3f4f24] text-lg rounded-lg border border-[#3f4f24] transition-all duration-200 hover:shadow-md flex items-center justify-center"
+              className="py-6 px-4 bg-white hover:bg-[#f4f7ee] text-[#3f4f24] text-lg rounded-lg border border-[#3f4f24] transition-all duration-200 hover:shadow-md"
               onClick={() => handleSelection("No")}
             >
-              <CheckCircle2Icon className="w-5 h-5 mr-2 text-green-600" />
               {t.no}
             </Button>
           </div>

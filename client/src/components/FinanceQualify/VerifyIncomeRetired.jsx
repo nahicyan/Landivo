@@ -1,38 +1,29 @@
-"use client";
-
 import React from "react";
 import { 
   Card, 
   CardContent 
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2Icon, XCircleIcon } from "lucide-react";
 
-export default function VerifyIncomeRetired({ surveyData, updateSurveyData, onNext, onBack }) {
+export default function VerifyIncomeSelfEmployed({ surveyData, updateSurveyData, onNext, onBack }) {
   // Handle selection
   const handleSelection = (choice) => {
     updateSurveyData("verify_income", choice);
-    
-    // Set disqualification flag if no income source
-    if (choice === "No") {
-      updateSurveyData("disqualificationFlag", true);
-    }
-    
     onNext();
   };
 
   // Translation object based on selected language
   const translations = {
     en: {
-      title: "Do you have another source of income?",
-      yes: "Yes",
-      no: "No",
+      title: "Can you verify your income by providing tax returns for the previous two years or 12 months of current bank statements showing deposits?",
+      yes: "Yes, I can",
+      no: "No, I cannot",
       back: "Back"
     },
     es: {
-      title: "¿Tiene otra fuente de ingresos?",
-      yes: "Sí",
-      no: "No",
+      title: "¿Puede verificar sus ingresos proporcionando declaraciones de impuestos de los últimos dos años o 12 meses de estados de cuenta bancarios actuales que muestren depósitos?",
+      yes: "Sí, puedo",
+      no: "No, no puedo",
       back: "Atrás"
     }
   };
@@ -50,18 +41,16 @@ export default function VerifyIncomeRetired({ surveyData, updateSurveyData, onNe
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8 max-w-md mx-auto">
             <Button
-              className="py-6 px-4 bg-white hover:bg-[#f4f7ee] text-[#3f4f24] text-lg rounded-lg border border-[#3f4f24] transition-all duration-200 hover:shadow-md flex items-center justify-center"
-              onClick={() => handleSelection("Yes")}
+              className="py-6 px-4 bg-white hover:bg-[#f4f7ee] text-[#3f4f24] text-lg rounded-lg border border-[#3f4f24] transition-all duration-200 hover:shadow-md"
+              onClick={() => handleSelection("Yes, I can")}
             >
-              <CheckCircle2Icon className="w-5 h-5 mr-2 text-green-600" />
               {t.yes}
             </Button>
             
             <Button
-              className="py-6 px-4 bg-white hover:bg-[#f0f0f0] text-[#d03c0b] text-lg rounded-lg border border-[#d03c0b] transition-all duration-200 hover:shadow-md flex items-center justify-center"
-              onClick={() => handleSelection("No")}
+              className="py-6 px-4 bg-white hover:bg-[#f4f7ee] text-[#3f4f24] text-lg rounded-lg border border-[#3f4f24] transition-all duration-200 hover:shadow-md"
+              onClick={() => handleSelection("No, I cannot")}
             >
-              <XCircleIcon className="w-5 h-5 mr-2 text-[#d03c0b]" />
               {t.no}
             </Button>
           </div>

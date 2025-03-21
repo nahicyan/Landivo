@@ -1,5 +1,3 @@
-"use client";
-
 import React from "react";
 import { 
   Card, 
@@ -18,20 +16,20 @@ export default function LanguageSelection({ surveyData, updateSurveyData, onNext
     <Card className="border-none shadow-none bg-transparent">
       <CardContent className="p-0">
         <div className="text-center">
-          <h2 className="text-2xl font-semibold text-[#324c48] mb-6">
-            Choose Your Language
+          <h2 className="text-2xl font-semibold text-[#324c48] mb-8">
+            Choose Your Language / Elija su Idioma
           </h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8 max-w-md mx-auto">
             <Button
-              className="py-8 bg-[#3f4f24] hover:bg-[#546930] text-white text-lg rounded-lg border border-[#3f4f24] transition-all duration-200 hover:shadow-md"
+              className="py-8 bg-[#3f4f24] hover:bg-[#546930] text-white text-lg rounded-lg transition-all duration-200 hover:shadow-md"
               onClick={() => handleSelectLanguage("en")}
             >
               English
             </Button>
             
             <Button
-              className="py-8 bg-[#3f4f24] hover:bg-[#546930] text-white text-lg rounded-lg border border-[#3f4f24] transition-all duration-200 hover:shadow-md"
+              className="py-8 bg-[#3f4f24] hover:bg-[#546930] text-white text-lg rounded-lg transition-all duration-200 hover:shadow-md"
               onClick={() => handleSelectLanguage("es")}
             >
               Español

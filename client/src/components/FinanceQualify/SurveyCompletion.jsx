@@ -5,17 +5,18 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { CheckCircle, XCircle, Clock, Download, Home } from "lucide-react";
+import { Clock, Download, Home } from "lucide-react";
 
-export default function SurveyCompletion({ surveyData, disqualified }) {
+export default function SurveyCompletion({ surveyData }) {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const disqualified = !surveyData.qualified;
 
   // Simulate processing time
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 3000);
+    }, 2000);
 
     return () => clearTimeout(timer);
   }, []);
@@ -94,10 +95,10 @@ export default function SurveyCompletion({ surveyData, disqualified }) {
                 <div className="space-y-6">
                   {/* Disqualified Result */}
                   <div className="flex flex-col items-center">
-                    <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mb-4">
-                      <XCircle className="w-10 h-10 text-red-600" />
+                    <div className="w-16 h-16 rounded-full bg-[#f4f7ee] flex items-center justify-center mb-4">
+                      <span className="text-2xl font-bold text-[#3f4f24]">!</span>
                     </div>
-                    <h2 className="text-2xl font-semibold text-[#d03c0b] mb-2">
+                    <h2 className="text-2xl font-semibold text-[#324c48] mb-2">
                       {t.sorry} {firstName && `${firstName}`}
                     </h2>
                     <p className="text-xl font-medium text-gray-700 mb-2">
@@ -109,9 +110,9 @@ export default function SurveyCompletion({ surveyData, disqualified }) {
                   </div>
                   
                   {/* Alternatives */}
-                  <div className="bg-amber-50 rounded-lg p-4 mb-6 text-left">
-                    <h3 className="font-semibold text-amber-800 mb-2">{t.alternatives}</h3>
-                    <ul className="space-y-2 text-amber-700">
+                  <div className="bg-[#f4f7ee] rounded-lg p-4 mb-6 text-left">
+                    <h3 className="font-semibold text-[#3f4f24] mb-2">{t.alternatives}</h3>
+                    <ul className="space-y-2 text-[#324c48]">
                       <li className="flex items-start">
                         <span className="mr-2">•</span>
                         <span>{t.alt1}</span>
@@ -153,8 +154,8 @@ export default function SurveyCompletion({ surveyData, disqualified }) {
                 <div className="space-y-6">
                   {/* Qualified Result */}
                   <div className="flex flex-col items-center">
-                    <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
-                      <CheckCircle className="w-10 h-10 text-green-600" />
+                    <div className="w-16 h-16 rounded-full bg-[#f4f7ee] flex items-center justify-center mb-4">
+                      <span className="text-2xl font-bold text-[#3f4f24]">✓</span>
                     </div>
                     <h2 className="text-2xl font-semibold text-[#3f4f24] mb-2">
                       {t.congratulations} {firstName && `${firstName}!`}

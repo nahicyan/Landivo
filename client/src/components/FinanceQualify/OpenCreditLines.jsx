@@ -1,5 +1,3 @@
-"use client";
-
 import React from "react";
 import { 
   Card, 
@@ -12,14 +10,6 @@ export default function OpenCreditLines({ surveyData, updateSurveyData, onNext, 
   // Handle selection
   const handleSelection = (choice) => {
     updateSurveyData("open_credit_lines", choice);
-    
-    // Navigate to different next steps based on answer
-    if (choice === "Yes, I do") {
-      updateSurveyData("next_route", "total_monthly_payments");
-    } else {
-      updateSurveyData("next_route", "gross_annual_income");
-    }
-    
     onNext();
   };
 

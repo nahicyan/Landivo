@@ -1,5 +1,3 @@
-"use client";
-
 import React from "react";
 import { 
   Card, 
@@ -81,7 +79,6 @@ export default function HomePurchaseTiming({ surveyData, updateSurveyData, onNex
             {options.map((option) => (
               <Button
                 key={option.value}
-                variant="outline"
                 className="h-auto min-h-[60px] py-3 px-3 bg-white hover:bg-[#f4f7ee] text-[#3f4f24] text-sm md:text-base rounded-lg border border-[#3f4f24] transition-all duration-200 hover:shadow-md flex items-center justify-center whitespace-normal"
                 onClick={() => handleSelection(option.value)}
               >

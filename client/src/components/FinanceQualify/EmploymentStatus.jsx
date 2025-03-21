@@ -1,5 +1,3 @@
-"use client";
-
 import React from "react";
 import { 
   Card, 
@@ -12,25 +10,6 @@ export default function EmploymentStatus({ surveyData, updateSurveyData, onNext,
   // Handle selection of employment status
   const handleSelection = (status) => {
     updateSurveyData("employment_status", status);
-    
-    // Handle different routes based on employment status
-    switch (status) {
-      case "Employed":
-        updateSurveyData("next_route", "verify_income_employed");
-        break;
-      case "Self-Employed 1099":
-        updateSurveyData("next_route", "verify_income_self_employed");
-        break;
-      case "Not Employed":
-        updateSurveyData("next_route", "verify_income_not_employed");
-        break;
-      case "Retired":
-        updateSurveyData("next_route", "verify_income_retired");
-        break;
-      default:
-        break;
-    }
-    
     onNext();
   };
 
@@ -57,6 +36,29 @@ export default function EmploymentStatus({ surveyData, updateSurveyData, onNext,
   // Get translations based on selected language
   const t = translations[surveyData.language || "en"];
 
+  const options = [
+    {
+      value: "Employed",
+      label: t.employed,
+      icon: <BriefcaseIcon className="w-5 h-5 mr-2" />
+    },
+    {
+      value: "Not Employed",
+      label: t.notEmployed,
+      icon: <UserIcon className="w-5 h-5 mr-2" />
+    },
+    {
+      value: "Self-Employed 1099",
+      label: t.selfEmployed,
+      icon: <WalletIcon className="w-5 h-5 mr-2" />
+    },
+    {
+      value: "Retired",
+      label: t.retired,
+      icon: <HeartPulseIcon className="w-5 h-5 mr-2" />
+    }
+  ];
+
   return (
     <Card className="border-none shadow-none bg-transparent">
       <CardContent className="p-0">
@@ -66,37 +68,16 @@ export default function EmploymentStatus({ surveyData, updateSurveyData, onNext,
           </h2>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
-            <Button
-              className="py-6 px-4 bg-white hover:bg-[#f4f7ee] text-[#3f4f24] text-lg rounded-lg border border-[#3f4f24] transition-all duration-200 hover:shadow-md flex items-center justify-center"
-              onClick={() => handleSelection("Employed")}
-            >
-              <BriefcaseIcon className="w-5 h-5 mr-2" />
-              {t.employed}
-            </Button>
-            
-            <Button
-              className="py-6 px-4 bg-white hover:bg-[#f4f7ee] text-[#3f4f24] text-lg rounded-lg border border-[#3f4f24] transition-all duration-200 hover:shadow-md flex items-center justify-center"
-              onClick={() => handleSelection("Not Employed")}
-            >
-              <UserIcon className="w-5 h-5 mr-2" />
-              {t.notEmployed}
-            </Button>
-            
-            <Button
-              className="py-6 px-4 bg-white hover:bg-[#f4f7ee] text-[#3f4f24] text-lg rounded-lg border border-[#3f4f24] transition-all duration-200 hover:shadow-md flex items-center justify-center"
-              onClick={() => handleSelection("Self-Employed 1099")}
-            >
-              <WalletIcon className="w-5 h-5 mr-2" />
-              {t.selfEmployed}
-            </Button>
-            
-            <Button
-              className="py-6 px-4 bg-white hover:bg-[#f4f7ee] text-[#3f4f24] text-lg rounded-lg border border-[#3f4f24] transition-all duration-200 hover:shadow-md flex items-center justify-center"
-              onClick={() => handleSelection("Retired")}
-            >
-              <HeartPulseIcon className="w-5 h-5 mr-2" />
-              {t.retired}
-            </Button>
+            {options.map((option) => (
+              <Button
+                key={option.value}
+                className="py-6 px-4 bg-white hover:bg-[#f4f7ee] text-[#3f4f24] text-lg rounded-lg border border-[#3f4f24] transition-all duration-200 hover:shadow-md flex items-center justify-center"
+                onClick={() => handleSelection(option.value)}
+              >
+                {option.icon}
+                {option.label}
+              </Button>
+            ))}
           </div>
           
           <div className="mt-8 flex justify-center">

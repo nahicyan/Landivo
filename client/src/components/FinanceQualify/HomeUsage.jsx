@@ -1,5 +1,3 @@
-"use client";
-
 import React from "react";
 import { 
   Card, 
@@ -35,6 +33,24 @@ export default function HomeUsage({ surveyData, updateSurveyData, onNext, onBack
   // Get translations based on selected language
   const t = translations[surveyData.language || "en"];
 
+  const options = [
+    {
+      value: "To build a primary residence",
+      label: t.primaryResidence,
+      icon: "🏠"
+    },
+    {
+      value: "Secondary/Vacation Land",
+      label: t.secondaryVacation,
+      icon: "🏞️"
+    },
+    {
+      value: "Investment Property",
+      label: t.investment,
+      icon: "💼"
+    }
+  ];
+
   return (
     <Card className="border-none shadow-none bg-transparent">
       <CardContent className="p-0">
@@ -44,26 +60,15 @@ export default function HomeUsage({ surveyData, updateSurveyData, onNext, onBack
           </h2>
           
           <div className="grid grid-cols-1 gap-4 mt-8">
-            <Button
-              className="py-6 px-4 bg-white hover:bg-[#f4f7ee] text-[#3f4f24] text-lg rounded-lg border border-[#3f4f24] transition-all duration-200 hover:shadow-md flex items-center justify-center"
-              onClick={() => handleSelection("To build a primary residence")}
-            >
-              <span className="mr-2">🏠</span> {t.primaryResidence}
-            </Button>
-            
-            <Button
-              className="py-6 px-4 bg-white hover:bg-[#f4f7ee] text-[#3f4f24] text-lg rounded-lg border border-[#3f4f24] transition-all duration-200 hover:shadow-md flex items-center justify-center"
-              onClick={() => handleSelection("Secondary/Vacation Land")}
-            >
-              <span className="mr-2">🏞️</span> {t.secondaryVacation}
-            </Button>
-            
-            <Button
-              className="py-6 px-4 bg-white hover:bg-[#f4f7ee] text-[#3f4f24] text-lg rounded-lg border border-[#3f4f24] transition-all duration-200 hover:shadow-md flex items-center justify-center"
-              onClick={() => handleSelection("Investment Property")}
-            >
-              <span className="mr-2">💼</span> {t.investment}
-            </Button>
+            {options.map((option) => (
+              <Button
+                key={option.value}
+                className="py-6 px-4 bg-white hover:bg-[#f4f7ee] text-[#3f4f24] text-lg rounded-lg border border-[#3f4f24] transition-all duration-200 hover:shadow-md flex items-center justify-center"
+                onClick={() => handleSelection(option.value)}
+              >
+                <span className="mr-2">{option.icon}</span> {option.label}
+              </Button>
+            ))}
           </div>
           
           <div className="mt-8 flex justify-center">

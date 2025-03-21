@@ -64,44 +64,44 @@ export default function CurrentCreditScore({ surveyData, updateSurveyData, onNex
     <Card className="border-none shadow-none bg-transparent">
       <CardContent className="p-0">
         <div className="text-center">
-          <h2 className="text-[28px] font-bold text-black mb-8" style={{ fontFamily: 'Arial, sans-serif' }}>
+          <h2 className="text-2xl font-semibold text-[#324c48] mb-6">
             {t.title}
           </h2>
           
           <div className="grid grid-cols-2 gap-4 mt-8">
             {creditScoreOptions.map((option) => (
-              <button
+              <Button
                 key={option.value}
                 className={`
                   py-6 
                   px-4 
                   bg-white 
+                  hover:bg-[#f4f7ee] 
+                  text-[#3f4f24] 
+                  text-lg 
+                  rounded-lg 
                   border 
-                  border-gray-300
-                  rounded-md
-                  text-black
-                  font-normal
-                  text-center
-                  hover:bg-gray-50
-                  transition-colors
-                  ${selectedChoice === option.value ? 'border-gray-500' : ''}
+                  border-[#3f4f24] 
+                  transition-all 
+                  duration-200 
+                  hover:shadow-md
+                  ${selectedChoice === option.value ? 'ring-2 ring-offset-1 ring-[#D4A017]' : ''}
                 `}
-                style={{ fontFamily: 'Arial, sans-serif' }}
                 onClick={() => handleSelectChoice(option.value)}
               >
                 {option.label}
-              </button>
+              </Button>
             ))}
           </div>
           
           <div className="mt-8 flex justify-center">
-            <button
-              className="text-teal-600 border-none bg-transparent hover:underline font-medium"
-              style={{ fontFamily: 'Arial, sans-serif' }}
+            <Button
+              variant="outline"
+              className="text-[#324c48] border-[#324c48] hover:bg-[#f0f5f4]"
               onClick={onBack}
             >
               {t.back}
-            </button>
+            </Button>
           </div>
         </div>
       </CardContent>

@@ -137,7 +137,7 @@ export default function DownPayment({ surveyData, updateSurveyData, onNext, onBa
             </Button>
             
             <Button
-              className="bg-[#D4A017] hover:bg-[#b88914] text-white"
+              className="bg-[#3f4f24] hover:bg-[#546930] text-white"
               onClick={handleNext}
             >
               {t.next}

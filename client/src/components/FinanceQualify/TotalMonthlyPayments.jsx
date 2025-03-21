@@ -1,6 +1,4 @@
-"use client";
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Card, 
   CardContent 
@@ -11,32 +9,43 @@ import { Label } from "@/components/ui/label";
 import { DollarSignIcon } from "lucide-react";
 
 export default function TotalMonthlyPayments({ surveyData, updateSurveyData, onNext, onBack }) {
-  const [totalPayments, setTotalPayments] = useState(surveyData.total_monthly_payments || "");
+  const [displayValue, setDisplayValue] = useState(formatCurrency(surveyData.total_monthly_payments || ""));
 
-  // Format currency as user types
-  const formatCurrency = (value) => {
+  // Format currency value with dollar sign and commas
+  function formatCurrency(value) {
     if (!value) return "";
     
     // Remove non-numeric characters
-    const numericValue = value.replace(/[^0-9]/g, "");
+    const numericValue = value.toString().replace(/[^0-9]/g, "");
     
     // Format with $ and commas
-    return numericValue ? `$${parseInt(numericValue, 10).toLocaleString()}` : "";
-  };
+    if (numericValue) {
+      const number = parseInt(numericValue, 10);
+      return `$${number.toLocaleString('en-US')}`;
+    }
+    
+    return "";
+  }
+
+  // Parse currency string to number (removing formatting)
+  function parseCurrency(formattedValue) {
+    if (!formattedValue) return "";
+    return formattedValue.replace(/[^0-9]/g, "");
+  }
 
   // Handle input change
   const handleInputChange = (e) => {
-    const formattedValue = formatCurrency(e.target.value);
-    setTotalPayments(formattedValue);
+    const rawValue = e.target.value;
+    setDisplayValue(formatCurrency(rawValue));
   };
 
   // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // Store raw numeric value
-    const rawValue = totalPayments.replace(/[^0-9]/g, "");
-    updateSurveyData("total_monthly_payments", rawValue);
+    // Store numeric value in survey data
+    const numericValue = parseCurrency(displayValue);
+    updateSurveyData("total_monthly_payments", numericValue);
     
     onNext();
   };
@@ -44,12 +53,14 @@ export default function TotalMonthlyPayments({ surveyData, updateSurveyData, onN
   // Translation object based on selected language
   const translations = {
     en: {
-      title: "What are the total monthly payments?",
+      title: "What are your total monthly payments?",
+      subtitle: "Include all loans, credit cards, and other debt payments",
       next: "Next",
       back: "Back"
     },
     es: {
-      title: "¿Cuáles son los pagos mensuales totales?",
+      title: "¿Cuáles son sus pagos mensuales totales?",
+      subtitle: "Incluya todos los préstamos, tarjetas de crédito y otros pagos de deudas",
       next: "Siguiente",
       back: "Atrás"
     }
@@ -62,9 +73,13 @@ export default function TotalMonthlyPayments({ surveyData, updateSurveyData, onN
     <Card className="border-none shadow-none bg-transparent">
       <CardContent className="p-0">
         <div className="text-center">
-          <h2 className="text-2xl font-semibold text-[#324c48] mb-6">
+          <h2 className="text-2xl font-semibold text-[#324c48] mb-4">
             {t.title}
           </h2>
+          
+          <p className="text-gray-500 mb-6">
+            {t.subtitle}
+          </p>
           
           <form onSubmit={handleSubmit} className="max-w-md mx-auto">
             <div className="relative mt-8">
@@ -74,11 +89,11 @@ export default function TotalMonthlyPayments({ surveyData, updateSurveyData, onN
                 <Input
                   id="monthly-payments"
                   type="text"
-                  value={totalPayments}
+                  value={displayValue}
                   onChange={handleInputChange}
                   className="pl-10 py-6 text-xl border-[#3f4f24] focus:border-[#D4A017] focus:ring-[#D4A017]"
-                  placeholder="Enter total monthly payments"
-                  required
+                  placeholder="$0"
+                  autoComplete="off"
                 />
               </div>
             </div>
@@ -96,7 +111,6 @@ export default function TotalMonthlyPayments({ surveyData, updateSurveyData, onN
               <Button
                 type="submit"
                 className="bg-[#3f4f24] hover:bg-[#546930] text-white"
-                disabled={!totalPayments}
               >
                 {t.next}
               </Button>
