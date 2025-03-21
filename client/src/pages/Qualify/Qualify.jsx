@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import axios from "axios";
+import { PuffLoader } from "react-spinners";
 import { getProperty } from "@/utils/api";
+import axios from "axios";
 
-// Import all survey components
+// Import all qualification step components
 import LanguageSelection from "@/components/FinanceQualify/LanguageSelection";
 import HomeUsage from "@/components/FinanceQualify/HomeUsage";
 import RealEstateAgent from "@/components/FinanceQualify/RealEstateAgent";
 import HomePurchaseTiming from "@/components/FinanceQualify/HomePurchaseTiming";
 import CurrentHomeOwnership from "@/components/FinanceQualify/CurrentHomeOwnership";
 import CurrentOnAllPayments from "@/components/FinanceQualify/CurrentOnAllPayments";
-import DownPayment from "@/components/FinanceQualify/DownPayment";
 import EmploymentStatus from "@/components/FinanceQualify/EmploymentStatus";
 import VerifyIncomeEmployed from "@/components/FinanceQualify/VerifyIncomeEmployed";
 import VerifyIncomeSelfEmployed from "@/components/FinanceQualify/VerifyIncomeSelfEmployed";
@@ -27,19 +28,56 @@ import DeclaredBankruptcy from "@/components/FinanceQualify/DeclaredBankruptcy";
 import CurrentCreditScore from "@/components/FinanceQualify/CurrentCreditScore";
 import LiensOrJudgments from "@/components/FinanceQualify/LiensOrJudgments";
 import UserInfo from "@/components/FinanceQualify/UserInfo";
+import DownPayment from "@/components/FinanceQualify/DownPayment";
 import SurveyCompletion from "@/components/FinanceQualify/SurveyCompletion";
-import { PuffLoader } from "react-spinners";
 
 export default function Qualify() {
   const navigate = useNavigate();
-  const { propertyId } = useParams(); // Get property ID from URL
-  const [currentStep, setCurrentStep] = useState(0);
-  const [propertyData, setPropertyData] = useState(null);
+  const { propertyId } = useParams();
   const [loading, setLoading] = useState(true);
-  const [surveyData, setSurveyData] = useState({
+  const [propertyData, setPropertyData] = useState(null);
+  const [currentStep, setCurrentStep] = useState(0);
+  
+  // Define the initial survey data state
+  const [formData, setFormData] = useState({
+    // Property Information
+    property_id: "",
+    property_price: "",
+    property_title: "",
+    property_location: "",
+    financing_available: false,
+    propertyData: null,
+
+    // Survey Responses
     language: "en",
-    disqualificationFlag: false,
-    // Will be populated with property data when fetched
+    home_usage: "",
+    real_estate_agent: "",
+    home_purchase_timing: "",
+    current_home_ownership: "",
+    current_on_all_payments: "",
+    employment_status: "",
+    verify_income: "",
+    income_history: "",
+    open_credit_lines: "",
+    total_monthly_payments: "",
+    gross_annual_income: "",
+    foreclosure_forbearance: "",
+    declared_bankruptcy: "",
+    current_credit_score: "",
+    liens_or_judgments: "",
+
+    // Payment Plan Data
+    selected_plan: "",
+    down_payment: "",
+    interest_rate: "",
+    monthly_payment: "",
+    loan_amount: "",
+
+    // Contact Information
+    first_name: "",
+    last_name: "",
+    email: "",
+    phone: "",
   });
 
   // Fetch property data if propertyId is available
@@ -50,8 +88,8 @@ export default function Qualify() {
         .then((data) => {
           setPropertyData(data);
           
-          // Initialize survey data with property information
-          setSurveyData(prev => ({
+          // Initialize form data with property information
+          setFormData(prev => ({
             ...prev,
             property_id: propertyId,
             property_price: data.askingPrice?.toString() || "100000",
@@ -66,45 +104,79 @@ export default function Qualify() {
         .catch((err) => {
           console.error("Error fetching property:", err);
           setLoading(false);
-          // Set default values in case of error
-          setSurveyData(prev => ({
-            ...prev,
-            property_price: "100000",
-          }));
         });
     } else {
-      // No propertyId, just remove loading state
       setLoading(false);
     }
   }, [propertyId]);
 
-  // Update survey data
-  const updateSurveyData = (key, value) => {
-    setSurveyData(prev => ({
+  // Update form data with new field values
+  const handleChange = (name, value) => {
+    setFormData((prev) => ({
       ...prev,
-      [key]: value
+      [name]: value,
     }));
   };
 
-  // Navigate to next step
-  const nextStep = () => {
-    // If there's a specific next route defined by a component
-    if (surveyData.next_route) {
-      const routeIndex = getStepIndexByRoute(surveyData.next_route);
-      if (routeIndex !== -1) {
-        setCurrentStep(routeIndex);
-        // Clear the next_route after using it
-        updateSurveyData("next_route", null);
+  // Handle moving to the next step
+  const handleNext = () => {
+    // Handle conditional navigation based on user selections
+    if (steps[currentStep].route === "employment_status") {
+      // Skip to appropriate income verification step based on employment status
+      const nextRoutes = {
+        "Employed": getStepIndexByRoute("verify_income_employed"),
+        "Self-Employed 1099": getStepIndexByRoute("verify_income_self_employed"),
+        "Not Employed": getStepIndexByRoute("verify_income_not_employed"),
+        "Retired": getStepIndexByRoute("verify_income_retired")
+      };
+      
+      const employmentStatus = formData.employment_status;
+      const nextStep = nextRoutes[employmentStatus];
+      
+      if (nextStep !== -1) {
+        setCurrentStep(nextStep);
         return;
       }
     }
     
-    // Default behavior: go to next step
+    // Skip total_monthly_payments if no open credit lines
+    if (steps[currentStep].route === "open_credit_lines" && formData.open_credit_lines === "No, I don't") {
+      const grossIncomeStep = getStepIndexByRoute("gross_annual_income");
+      if (grossIncomeStep !== -1) {
+        setCurrentStep(grossIncomeStep);
+        return;
+      }
+    }
+    
+    // Default behavior - go to next step
     setCurrentStep(prev => Math.min(prev + 1, steps.length - 1));
   };
 
-  // Navigate to previous step
-  const prevStep = () => {
+  // Handle moving to the previous step
+  const handleBack = () => {
+    // Handle special back navigation cases
+    if (["verify_income_employed", "verify_income_self_employed", 
+         "verify_income_not_employed", "verify_income_retired"].includes(steps[currentStep].route)) {
+      // Always go back to employment status from any income verification step
+      const employmentStep = getStepIndexByRoute("employment_status");
+      if (employmentStep !== -1) {
+        setCurrentStep(employmentStep);
+        return;
+      }
+    }
+    
+    // Handle going back from gross_annual_income to appropriate step
+    if (steps[currentStep].route === "gross_annual_income") {
+      if (formData.open_credit_lines === "No, I don't") {
+        const openCreditStep = getStepIndexByRoute("open_credit_lines");
+        if (openCreditStep !== -1) {
+          setCurrentStep(openCreditStep);
+          return;
+        }
+      }
+    }
+    
+    // Default behavior - go to previous step
     setCurrentStep(prev => Math.max(prev - 1, 0));
   };
 
@@ -113,38 +185,92 @@ export default function Qualify() {
     return steps.findIndex(step => step.route === routeName);
   };
 
-  // Handle final submission
+  // Apply qualification rules to determine if user is qualified
+  const evaluateQualification = () => {
+    // Automatic disqualification criteria
+    const disqualifyingConditions = [
+      // Credit score criteria
+      ["current_credit_score", ["Below average (620-659)", "Poor (580-619)", "Bad (Below 580)"]],
+      // Payment history criteria
+      ["current_on_all_payments", ["No"]],
+      // Financial criteria
+      ["gross_annual_income", ["Less than $30,000", "$30,000 - $50,000", "$50,000 - $75,000"]],
+      // Legal/Credit issues
+      ["foreclosure_forbearance", ["Yes"]],
+      ["declared_bankruptcy", ["Yes"]],
+      ["liens_or_judgments", ["Yes"]],
+      // Income verification
+      ["verify_income", ["No, I cannot", "No, I don't"]],
+      ["income_history", ["No"]]
+    ];
+    
+    // Check each disqualifying condition
+    for (const [field, disqualifyingValues] of disqualifyingConditions) {
+      if (disqualifyingValues.includes(formData[field])) {
+        return false; // Disqualified
+      }
+    }
+    
+    // Down payment check - must be at least 10% of property price
+    if (formData.down_payment) {
+      const downPayment = parseFloat(formData.down_payment);
+      const propertyPrice = parseFloat(formData.property_price || 0);
+      if (downPayment < propertyPrice * 0.1) {
+        return false; // Disqualified due to insufficient down payment
+      }
+    }
+    
+    // If no disqualifying conditions found, user is qualified
+    return true;
+  };
+
+  // Handle form submission
   const handleSubmit = async () => {
     try {
-      // Here you would normally send data to your backend
-      console.log("Submitting survey data:", surveyData);
+      // Determine qualification status
+      const isQualified = evaluateQualification();
       
-      // You could add an API call here:
-      /*
-      await axios.post(`${import.meta.env.VITE_SERVER_URL}/api/qualify/submit`, 
-        surveyData, 
-        { withCredentials: true }
-      );
-      */
+      // Prepare submission data
+      const submissionData = {
+        ...formData,
+        qualified: isQualified,
+        submission_date: new Date().toISOString()
+      };
+      
+      // Log the submission data
+      console.log("Submitting qualification data:", submissionData);
+      
+      // Submit to backend (uncomment when ready)
+      // const response = await axios.post(
+      //   `${import.meta.env.VITE_SERVER_URL}/api/qualification/submit`, 
+      //   submissionData,
+      //   { withCredentials: true }
+      // );
+      
+      // Navigate to completion step with qualification result
+      setFormData(prev => ({
+        ...prev,
+        qualified: isQualified,
+      }));
       
       // Move to completion step
       setCurrentStep(steps.length - 1);
     } catch (error) {
       console.error("Error submitting qualification data:", error);
-      // You could add error handling here
+      // Error handling could be added here
     }
   };
 
-  // Define all survey steps
+  // Define all steps with their components and routes
   const steps = [
     {
       title: "Language Selection",
       route: "language_selection",
       component: (
         <LanguageSelection 
-          surveyData={surveyData} 
-          updateSurveyData={updateSurveyData} 
-          onNext={nextStep}
+          surveyData={formData} 
+          updateSurveyData={handleChange} 
+          onNext={handleNext}
         />
       ),
     },
@@ -153,10 +279,10 @@ export default function Qualify() {
       route: "home_usage",
       component: (
         <HomeUsage 
-          surveyData={surveyData} 
-          updateSurveyData={updateSurveyData} 
-          onNext={nextStep} 
-          onBack={prevStep}
+          surveyData={formData} 
+          updateSurveyData={handleChange} 
+          onNext={handleNext} 
+          onBack={handleBack}
         />
       ),
     },
@@ -165,10 +291,10 @@ export default function Qualify() {
       route: "real_estate_agent",
       component: (
         <RealEstateAgent 
-          surveyData={surveyData} 
-          updateSurveyData={updateSurveyData} 
-          onNext={nextStep} 
-          onBack={prevStep}
+          surveyData={formData} 
+          updateSurveyData={handleChange} 
+          onNext={handleNext} 
+          onBack={handleBack}
         />
       ),
     },
@@ -177,10 +303,10 @@ export default function Qualify() {
       route: "home_purchase_timing",
       component: (
         <HomePurchaseTiming 
-          surveyData={surveyData} 
-          updateSurveyData={updateSurveyData} 
-          onNext={nextStep} 
-          onBack={prevStep}
+          surveyData={formData} 
+          updateSurveyData={handleChange} 
+          onNext={handleNext} 
+          onBack={handleBack}
         />
       ),
     },
@@ -189,10 +315,10 @@ export default function Qualify() {
       route: "current_home_ownership",
       component: (
         <CurrentHomeOwnership 
-          surveyData={surveyData} 
-          updateSurveyData={updateSurveyData} 
-          onNext={nextStep} 
-          onBack={prevStep}
+          surveyData={formData} 
+          updateSurveyData={handleChange} 
+          onNext={handleNext} 
+          onBack={handleBack}
         />
       ),
     },
@@ -201,10 +327,10 @@ export default function Qualify() {
       route: "current_on_all_payments",
       component: (
         <CurrentOnAllPayments 
-          surveyData={surveyData} 
-          updateSurveyData={updateSurveyData} 
-          onNext={nextStep} 
-          onBack={prevStep}
+          surveyData={formData} 
+          updateSurveyData={handleChange} 
+          onNext={handleNext} 
+          onBack={handleBack}
         />
       ),
     },
@@ -213,10 +339,10 @@ export default function Qualify() {
       route: "down_payment",
       component: (
         <DownPayment 
-          surveyData={surveyData} 
-          updateSurveyData={updateSurveyData} 
-          onNext={nextStep} 
-          onBack={prevStep}
+          surveyData={formData} 
+          updateSurveyData={handleChange} 
+          onNext={handleNext} 
+          onBack={handleBack}
         />
       ),
     },
@@ -225,10 +351,10 @@ export default function Qualify() {
       route: "employment_status",
       component: (
         <EmploymentStatus 
-          surveyData={surveyData} 
-          updateSurveyData={updateSurveyData} 
-          onNext={nextStep} 
-          onBack={prevStep}
+          surveyData={formData} 
+          updateSurveyData={handleChange} 
+          onNext={handleNext} 
+          onBack={handleBack}
         />
       ),
     },
@@ -237,10 +363,10 @@ export default function Qualify() {
       route: "verify_income_employed",
       component: (
         <VerifyIncomeEmployed 
-          surveyData={surveyData} 
-          updateSurveyData={updateSurveyData} 
-          onNext={nextStep} 
-          onBack={prevStep}
+          surveyData={formData} 
+          updateSurveyData={handleChange} 
+          onNext={handleNext} 
+          onBack={handleBack}
         />
       ),
     },
@@ -249,10 +375,10 @@ export default function Qualify() {
       route: "verify_income_self_employed",
       component: (
         <VerifyIncomeSelfEmployed 
-          surveyData={surveyData} 
-          updateSurveyData={updateSurveyData} 
-          onNext={nextStep} 
-          onBack={prevStep}
+          surveyData={formData} 
+          updateSurveyData={handleChange} 
+          onNext={handleNext} 
+          onBack={handleBack}
         />
       ),
     },
@@ -261,10 +387,10 @@ export default function Qualify() {
       route: "verify_income_not_employed",
       component: (
         <VerifyIncomeNotEmployed 
-          surveyData={surveyData} 
-          updateSurveyData={updateSurveyData} 
-          onNext={nextStep} 
-          onBack={prevStep}
+          surveyData={formData} 
+          updateSurveyData={handleChange} 
+          onNext={handleNext} 
+          onBack={handleBack}
         />
       ),
     },
@@ -273,10 +399,10 @@ export default function Qualify() {
       route: "verify_income_retired",
       component: (
         <VerifyIncomeRetired 
-          surveyData={surveyData} 
-          updateSurveyData={updateSurveyData} 
-          onNext={nextStep} 
-          onBack={prevStep}
+          surveyData={formData} 
+          updateSurveyData={handleChange} 
+          onNext={handleNext} 
+          onBack={handleBack}
         />
       ),
     },
@@ -285,10 +411,10 @@ export default function Qualify() {
       route: "income_history",
       component: (
         <IncomeHistory 
-          surveyData={surveyData} 
-          updateSurveyData={updateSurveyData} 
-          onNext={nextStep} 
-          onBack={prevStep}
+          surveyData={formData} 
+          updateSurveyData={handleChange} 
+          onNext={handleNext} 
+          onBack={handleBack}
         />
       ),
     },
@@ -297,10 +423,10 @@ export default function Qualify() {
       route: "open_credit_lines",
       component: (
         <OpenCreditLines 
-          surveyData={surveyData} 
-          updateSurveyData={updateSurveyData} 
-          onNext={nextStep} 
-          onBack={prevStep}
+          surveyData={formData} 
+          updateSurveyData={handleChange} 
+          onNext={handleNext} 
+          onBack={handleBack}
         />
       ),
     },
@@ -309,10 +435,10 @@ export default function Qualify() {
       route: "total_monthly_payments",
       component: (
         <TotalMonthlyPayments 
-          surveyData={surveyData} 
-          updateSurveyData={updateSurveyData} 
-          onNext={nextStep} 
-          onBack={prevStep}
+          surveyData={formData} 
+          updateSurveyData={handleChange} 
+          onNext={handleNext} 
+          onBack={handleBack}
         />
       ),
     },
@@ -321,10 +447,10 @@ export default function Qualify() {
       route: "gross_annual_income",
       component: (
         <GrossAnnualIncome 
-          surveyData={surveyData} 
-          updateSurveyData={updateSurveyData} 
-          onNext={nextStep} 
-          onBack={prevStep}
+          surveyData={formData} 
+          updateSurveyData={handleChange} 
+          onNext={handleNext} 
+          onBack={handleBack}
         />
       ),
     },
@@ -333,10 +459,10 @@ export default function Qualify() {
       route: "foreclosure_forbearance",
       component: (
         <ForeclosureForbearance 
-          surveyData={surveyData} 
-          updateSurveyData={updateSurveyData} 
-          onNext={nextStep} 
-          onBack={prevStep}
+          surveyData={formData} 
+          updateSurveyData={handleChange} 
+          onNext={handleNext} 
+          onBack={handleBack}
         />
       ),
     },
@@ -345,10 +471,10 @@ export default function Qualify() {
       route: "declared_bankruptcy",
       component: (
         <DeclaredBankruptcy 
-          surveyData={surveyData} 
-          updateSurveyData={updateSurveyData} 
-          onNext={nextStep} 
-          onBack={prevStep}
+          surveyData={formData} 
+          updateSurveyData={handleChange} 
+          onNext={handleNext} 
+          onBack={handleBack}
         />
       ),
     },
@@ -357,10 +483,10 @@ export default function Qualify() {
       route: "current_credit_score",
       component: (
         <CurrentCreditScore 
-          surveyData={surveyData} 
-          updateSurveyData={updateSurveyData} 
-          onNext={nextStep} 
-          onBack={prevStep}
+          surveyData={formData} 
+          updateSurveyData={handleChange} 
+          onNext={handleNext} 
+          onBack={handleBack}
         />
       ),
     },
@@ -369,10 +495,10 @@ export default function Qualify() {
       route: "liens_or_judgments",
       component: (
         <LiensOrJudgments 
-          surveyData={surveyData} 
-          updateSurveyData={updateSurveyData} 
-          onNext={nextStep} 
-          onBack={prevStep}
+          surveyData={formData} 
+          updateSurveyData={handleChange} 
+          onNext={handleNext} 
+          onBack={handleBack}
         />
       ),
     },
@@ -381,10 +507,10 @@ export default function Qualify() {
       route: "user_info",
       component: (
         <UserInfo 
-          surveyData={surveyData} 
-          updateSurveyData={updateSurveyData} 
+          surveyData={formData} 
+          updateSurveyData={handleChange} 
           onSubmit={handleSubmit} 
-          onBack={prevStep}
+          onBack={handleBack}
         />
       ),
     },
@@ -393,21 +519,12 @@ export default function Qualify() {
       route: "survey_completion",
       component: (
         <SurveyCompletion 
-          surveyData={surveyData} 
-          disqualified={surveyData.disqualificationFlag}
+          surveyData={formData} 
+          disqualified={!formData.qualified}
         />
       ),
     },
   ];
-
-  // Logic to skip irrelevant steps based on employment status
-  useEffect(() => {
-    // If the current step is employment status and a selection was just made
-    if (steps[currentStep].route === "employment_status" && surveyData.employment_status) {
-      // The next step will be determined by the next_route set in the EmploymentStatus component
-      // The nextStep function will handle routing to the correct verification step
-    }
-  }, [surveyData.employment_status, currentStep]);
 
   // Progress indicator component
   const StepIndicator = ({ currentStep }) => {
@@ -464,48 +581,6 @@ export default function Qualify() {
     );
   };
 
-  // Skip logic for certain steps based on other answers
-  const shouldSkipCurrentStep = () => {
-    const currentRoute = steps[currentStep].route;
-    
-    // Skip employment-specific verification steps based on employment status
-    if (currentRoute === "verify_income_employed" && surveyData.employment_status !== "Employed") {
-      return true;
-    }
-    if (currentRoute === "verify_income_self_employed" && surveyData.employment_status !== "Self-Employed 1099") {
-      return true;
-    }
-    if (currentRoute === "verify_income_not_employed" && surveyData.employment_status !== "Not Employed") {
-      return true;
-    }
-    if (currentRoute === "verify_income_retired" && surveyData.employment_status !== "Retired") {
-      return true;
-    }
-    
-    // Skip total monthly payments step if no open credit lines
-    if (currentRoute === "total_monthly_payments" && surveyData.open_credit_lines !== "Yes, I do") {
-      return true;
-    }
-    
-    return false;
-  };
-
-  // Effect to automatically skip steps based on logic
-  useEffect(() => {
-    if (shouldSkipCurrentStep()) {
-      nextStep();
-    }
-  }, [currentStep, surveyData]);
-
-  // Show loading state while fetching property data
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-[60vh]">
-        <PuffLoader size={80} color="#404040" />
-      </div>
-    );
-  }
-
   // Property Info Header
   const PropertyHeader = () => {
     if (!propertyData) return null;
@@ -528,67 +603,14 @@ export default function Qualify() {
     );
   };
 
-  // Enhanced Debug Panel with Payment Plan Information
-  const EnhancedDebugPanel = () => {
-    const paymentPlanData = {
-      selected_plan: surveyData.selected_plan || "Not selected",
-      down_payment: surveyData.down_payment || "Not set",
-      interest_rate: surveyData.interest_rate || "Not set",
-      monthly_payment: surveyData.monthly_payment || "Not set",
-    };
-
+  // Show loading state while fetching property data
+  if (loading) {
     return (
-      <div className="mt-8 p-4 bg-gray-100 rounded-lg">
-        <details>
-          <summary className="font-semibold cursor-pointer">Debug: Current Survey Data</summary>
-          <pre className="mt-2 text-xs overflow-auto max-h-60">
-            {JSON.stringify(surveyData, null, 2)}
-          </pre>
-        </details>
-        
-        <details className="mt-4">
-          <summary className="font-semibold cursor-pointer">Debug: Payment Plan Data</summary>
-          <div className="mt-2 p-3 bg-white rounded border border-gray-300">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-gray-100">
-                  <th className="text-left p-2">Data Field</th>
-                  <th className="text-left p-2">Value</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td className="p-2 border-t">Selected Plan</td>
-                  <td className="p-2 border-t">{paymentPlanData.selected_plan}</td>
-                </tr>
-                <tr>
-                  <td className="p-2 border-t">Down Payment</td>
-                  <td className="p-2 border-t">${paymentPlanData.down_payment}</td>
-                </tr>
-                <tr>
-                  <td className="p-2 border-t">Interest Rate</td>
-                  <td className="p-2 border-t">{paymentPlanData.interest_rate}%</td>
-                </tr>
-                <tr>
-                  <td className="p-2 border-t">Monthly Payment</td>
-                  <td className="p-2 border-t">${paymentPlanData.monthly_payment}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </details>
-        
-        {propertyData && (
-          <details className="mt-4">
-            <summary className="font-semibold cursor-pointer">Debug: Property Data</summary>
-            <pre className="mt-2 text-xs overflow-auto max-h-60">
-              {JSON.stringify(propertyData, null, 2)}
-            </pre>
-          </details>
-        )}
+      <div className="flex items-center justify-center h-[60vh]">
+        <PuffLoader size={80} color="#404040" />
       </div>
     );
-  };
+  }
 
   return (
     <div className="max-w-6xl mx-auto p-6 bg-[#FDF8F2] min-h-screen">
@@ -612,8 +634,24 @@ export default function Qualify() {
         </motion.div>
       </AnimatePresence>
       
-      {/* Enhanced Debug Panel (visible only in development) */}
-      {import.meta.env.DEV && <EnhancedDebugPanel />}
+      {/* Development aids - only visible in development */}
+      {import.meta.env.DEV && (
+        <div className="mt-8 p-4 bg-gray-100 rounded-lg">
+          <details>
+            <summary className="font-semibold cursor-pointer">Debug: Form Data</summary>
+            <pre className="mt-2 text-xs overflow-auto max-h-60">
+              {JSON.stringify(formData, null, 2)}
+            </pre>
+          </details>
+          
+          <details className="mt-4">
+            <summary className="font-semibold cursor-pointer">Debug: Qualification Status</summary>
+            <div className="mt-2 p-3 bg-white rounded border border-gray-300">
+              <p className="font-semibold">Would Qualify: {evaluateQualification() ? "Yes" : "No"}</p>
+            </div>
+          </details>
+        </div>
+      )}
     </div>
   );
 }
