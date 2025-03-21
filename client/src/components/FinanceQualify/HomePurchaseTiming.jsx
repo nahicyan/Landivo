@@ -6,6 +6,7 @@ import {
   CardContent 
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { CalendarIcon } from "lucide-react";
 
 export default function HomePurchaseTiming({ surveyData, updateSurveyData, onNext, onBack }) {
   // Handle selection
@@ -41,6 +42,33 @@ export default function HomePurchaseTiming({ surveyData, updateSurveyData, onNex
   // Get translations based on selected language
   const t = translations[surveyData.language || "en"];
 
+  const options = [
+    {
+      value: "Immediately: I have a signed purchase agreement",
+      label: t.immediate,
+    },
+    {
+      value: "ASAP: I have found a land / Offer pending",
+      label: t.asap,
+    },
+    {
+      value: "Within 30 Days",
+      label: t.within30,
+    },
+    {
+      value: "2-3 Months",
+      label: t.months23,
+    },
+    {
+      value: "3-6 months",
+      label: t.months36,
+    },
+    {
+      value: "6+ months",
+      label: t.months6plus,
+    }
+  ];
+
   return (
     <Card className="border-none shadow-none bg-transparent">
       <CardContent className="p-0">
@@ -49,48 +77,18 @@ export default function HomePurchaseTiming({ surveyData, updateSurveyData, onNex
             {t.title}
           </h2>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
-            <Button
-              className="py-4 px-4 bg-white hover:bg-[#f4f7ee] text-[#3f4f24] text-base rounded-lg border border-[#3f4f24] transition-all duration-200 hover:shadow-md"
-              onClick={() => handleSelection("Immediately: I have a signed purchase agreement")}
-            >
-              {t.immediate}
-            </Button>
-            
-            <Button
-              className="py-4 px-4 bg-white hover:bg-[#f4f7ee] text-[#3f4f24] text-base rounded-lg border border-[#3f4f24] transition-all duration-200 hover:shadow-md"
-              onClick={() => handleSelection("ASAP: I have found a land / Offer pending")}
-            >
-              {t.asap}
-            </Button>
-            
-            <Button
-              className="py-4 px-4 bg-white hover:bg-[#f4f7ee] text-[#3f4f24] text-base rounded-lg border border-[#3f4f24] transition-all duration-200 hover:shadow-md"
-              onClick={() => handleSelection("Within 30 Days")}
-            >
-              {t.within30}
-            </Button>
-            
-            <Button
-              className="py-4 px-4 bg-white hover:bg-[#f4f7ee] text-[#3f4f24] text-base rounded-lg border border-[#3f4f24] transition-all duration-200 hover:shadow-md"
-              onClick={() => handleSelection("2-3 Months")}
-            >
-              {t.months23}
-            </Button>
-            
-            <Button
-              className="py-4 px-4 bg-white hover:bg-[#f4f7ee] text-[#3f4f24] text-base rounded-lg border border-[#3f4f24] transition-all duration-200 hover:shadow-md"
-              onClick={() => handleSelection("3-6 months")}
-            >
-              {t.months36}
-            </Button>
-            
-            <Button
-              className="py-4 px-4 bg-white hover:bg-[#f4f7ee] text-[#3f4f24] text-base rounded-lg border border-[#3f4f24] transition-all duration-200 hover:shadow-md"
-              onClick={() => handleSelection("6+ months")}
-            >
-              {t.months6plus}
-            </Button>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+            {options.map((option) => (
+              <Button
+                key={option.value}
+                variant="outline"
+                className="h-auto min-h-[60px] py-3 px-3 bg-white hover:bg-[#f4f7ee] text-[#3f4f24] text-sm md:text-base rounded-lg border border-[#3f4f24] transition-all duration-200 hover:shadow-md flex items-center justify-center whitespace-normal"
+                onClick={() => handleSelection(option.value)}
+              >
+                <CalendarIcon className="w-5 h-5 min-w-5 mr-2 flex-shrink-0" />
+                <span className="text-center">{option.label}</span>
+              </Button>
+            ))}
           </div>
           
           <div className="mt-8 flex justify-center">
