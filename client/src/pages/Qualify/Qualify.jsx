@@ -509,26 +509,27 @@ export default function Qualify() {
     );
   }
 
-  // Property Info Header
-  const PropertyHeader = () => {
-    if (!propertyData) return null;
-    
-    return (
-      <div className="mb-8 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-        <h1 className="text-lg font-semibold text-[#3f4f24]">
-          Pre-qualify for: {propertyData.title || `Property #${propertyId}`}
-        </h1>
-        <div className="flex items-center justify-between mt-2">
-          <p className="text-gray-600">
-            {propertyData.streetAddress}, {propertyData.city}, {propertyData.state}
-          </p>
-          <p className="font-semibold text-[#D4A017]">
-            ${propertyData.askingPrice?.toLocaleString() || "N/A"}
-          </p>
-        </div>
+// Property Info Header
+const PropertyHeader = () => {
+  if (!propertyData) return null;
+  
+  return (
+    <div className="mb-8 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+      <h1 
+        className="text-lg font-semibold text-[#3f4f24]"
+        dangerouslySetInnerHTML={{ __html: propertyData.title }}
+      />
+      <div className="flex items-center justify-between mt-2">
+        <p className="text-gray-600">
+          {propertyData.streetAddress}, {propertyData.city}, {propertyData.state}
+        </p>
+        <p className="font-semibold text-[#D4A017]">
+          ${propertyData.financedPrice?.toLocaleString() || "N/A"}
+        </p>
       </div>
-    );
-  };
+    </div>
+  );
+};
 
   return (
     <div className="max-w-6xl mx-auto p-6 bg-[#FDF8F2] min-h-screen">
