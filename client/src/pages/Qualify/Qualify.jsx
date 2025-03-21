@@ -6,15 +6,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 
 // Survey components
-import LanguageSelection from "@/components/QualifySurvey/LanguageSelection";
-import HomeUsage from "@/components/QualifySurvey/HomeUsage";
-import RealEstateAgent from "@/components/QualifySurvey/RealEstateAgent";
+import LanguageSelection from "@/components/FinanceQualify/LanguageSelection";
+import HomeUsage from "@/components/FinanceQualify/HomeUsage";
+import RealEstateAgent from "@/components/FinanceQualify/RealEstateAgent";
 // import HomePurchaseTiming from "@/components/QualifySurvey/HomePurchaseTiming";
 // import CurrentHomeOwnership from "@/components/QualifySurvey/CurrentHomeOwnership";
 // import CurrentOnAllPayments from "@/components/QualifySurvey/CurrentOnAllPayments";
 // import DownPayment from "@/components/QualifySurvey/DownPayment";
-import UserInfo from "@/components/QualifySurvey/UserInfo";
-import SurveyCompletion from "@/components/QualifySurvey/SurveyCompletion";
+import UserInfo from "@/components/FinanceQualify/UserInfo";
+import SurveyCompletion from "@/components/FinanceQualify/SurveyCompletion";
 
 export default function Qualify() {
   const navigate = useNavigate();
