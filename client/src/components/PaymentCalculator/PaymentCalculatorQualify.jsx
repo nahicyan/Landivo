@@ -7,7 +7,6 @@ import {
   CardContent,
   CardFooter,
 } from "@/components/ui/card";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { PieChart, Pie, Cell, Label as RechartsLabel, Tooltip } from "recharts";
@@ -30,9 +29,9 @@ const formatLoanTerm = (term) => {
 export default function PaymentCalculatorQualify({ 
   propertyData, 
   onOptionChange,
-  initialOption
+  initialOption = "1"
 }) {
-  const [selectedOption, setSelectedOption] = useState(initialOption || "1");
+  const [selectedOption, setSelectedOption] = useState(initialOption);
   const [includeAllFees, setIncludeAllFees] = useState(false);
 
   // Theme colors
@@ -63,25 +62,25 @@ export default function PaymentCalculatorQualify({
     switch (selectedOption) {
       case "2":
         return {
-          interest: propertyData.interestTwo,
-          monthlyPayment: propertyData.monthlyPaymentTwo,
-          downPayment: propertyData.downPaymentTwo,
-          loanAmount: propertyData.loanAmountTwo,
+          interest: propertyData?.interestTwo,
+          monthlyPayment: propertyData?.monthlyPaymentTwo,
+          downPayment: propertyData?.downPaymentTwo,
+          loanAmount: propertyData?.loanAmountTwo,
         };
       case "3":
         return {
-          interest: propertyData.interestThree,
-          monthlyPayment: propertyData.monthlyPaymentThree,
-          downPayment: propertyData.downPaymentThree,
-          loanAmount: propertyData.loanAmountThree,
+          interest: propertyData?.interestThree,
+          monthlyPayment: propertyData?.monthlyPaymentThree,
+          downPayment: propertyData?.downPaymentThree,
+          loanAmount: propertyData?.loanAmountThree,
         };
       default:
         // "1"
         return {
-          interest: propertyData.interestOne,
-          monthlyPayment: propertyData.monthlyPaymentOne,
-          downPayment: propertyData.downPaymentOne,
-          loanAmount: propertyData.loanAmountOne,
+          interest: propertyData?.interestOne,
+          monthlyPayment: propertyData?.monthlyPaymentOne,
+          downPayment: propertyData?.downPaymentOne,
+          loanAmount: propertyData?.loanAmountOne,
         };
     }
   }, [selectedOption, propertyData]);
@@ -94,13 +93,13 @@ export default function PaymentCalculatorQualify({
   }, [selectedOption, onOptionChange]);
 
   // Calculate monthly tax (yearly tax divided by 12)
-  const monthlyTax = (propertyData.tax || 0) / 12;
+  const monthlyTax = (propertyData?.tax || 0) / 12;
 
   // Parse numeric values and ensure they're not NaN
   const parsedMonthlyPayment = parseFloat(monthlyPayment) || 0;
   const parsedMonthlyTax = parseFloat(monthlyTax) || 0;
-  const parsedHoaMonthly = parseFloat(propertyData.hoaMonthly) || 0;
-  const parsedServiceFee = parseFloat(propertyData.serviceFee) || 0;
+  const parsedHoaMonthly = parseFloat(propertyData?.hoaMonthly) || 0;
+  const parsedServiceFee = parseFloat(propertyData?.serviceFee) || 0;
 
   // Calculate total monthly payment
   const baseMonthlyPayment = parsedMonthlyPayment;
@@ -122,7 +121,11 @@ export default function PaymentCalculatorQualify({
   // Handle the option selection
   const handleOptionSelect = (value) => {
     setSelectedOption(value);
-    // No need to call onOptionChange here since it's handled by the useEffect
+  };
+
+  // Handle toggle change
+  const handleToggleChange = (checked) => {
+    setIncludeAllFees(checked);
   };
 
   return (
@@ -164,6 +167,7 @@ export default function PaymentCalculatorQualify({
                   <input
                     type="radio"
                     id={option.id}
+                    name="planOption"
                     value={option.value}
                     checked={selectedOption === option.value}
                     onChange={() => handleOptionSelect(option.value)}
@@ -187,7 +191,6 @@ export default function PaymentCalculatorQualify({
                       {option.label}
                     </div>
                     
-                    {/* add pricing info here */}
                     <div 
                       className="text-xs"
                       style={{ color: themeColors.secondary }}
@@ -219,7 +222,6 @@ export default function PaymentCalculatorQualify({
                   outerRadius={100}
                   strokeWidth={3}
                   stroke="#FDF8F2" // Background color for gaps
-                  // paddingAngle={1} // This creates gaps between segments
                 >
                   {chartData.map((entry, index) => (
                     <Cell 
@@ -282,12 +284,9 @@ export default function PaymentCalculatorQualify({
                 <Switch 
                   id="include-fees" 
                   checked={includeAllFees} 
-                  onCheckedChange={setIncludeAllFees}
+                  onCheckedChange={handleToggleChange}
                   className={`${includeAllFees ? 'bg-[#3f4f24]' : 'bg-[#8A8B7F]'} 
                               transition-colors data-[state=checked]:bg-[#3f4f24]`}
-                  style={{
-                    backgroundColor: includeAllFees ? themeColors.primary : '#8A8B7F'
-                  }}
                 />
                 <Label htmlFor="include-fees" className="cursor-pointer" style={{ color: themeColors.text }}>
                   Include Tax, HOA & Service Fee
@@ -324,7 +323,7 @@ export default function PaymentCalculatorQualify({
                   Loan Amount
                 </Label>
                 <div className="text-base" style={{ color: themeColors.text }}>
-                  ${loanAmount?.toLocaleString() || 0}
+                  ${parseFloat(loanAmount || 0).toLocaleString()}
                 </div>
               </div>
 
@@ -334,7 +333,7 @@ export default function PaymentCalculatorQualify({
                   Down Payment
                 </Label>
                 <div className="text-base" style={{ color: "#030001" }}>
-                  ${downPayment?.toLocaleString() || 0}
+                  ${parseFloat(downPayment || 0).toLocaleString()}
                 </div>
               </div>
 
@@ -376,7 +375,7 @@ export default function PaymentCalculatorQualify({
                   Loan Term
                 </Label>
                 <div className="text-base" style={{ color: "#030001" }}>
-                  {propertyData.term} Months
+                  {propertyData?.term || 0} Months
                 </div>
               </div>
 

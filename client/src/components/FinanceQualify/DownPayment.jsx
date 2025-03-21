@@ -9,7 +9,7 @@ import PaymentCalculatorQualify from "@/components/PaymentCalculator/PaymentCalc
 
 export default function DownPayment({ surveyData, updateSurveyData, onNext, onBack }) {
   // State to track selected payment plan
-  const [selectedOption, setSelectedOption] = useState("1");
+  const [selectedOption, setSelectedOption] = useState(surveyData.selected_plan || "1");
   
   // Track if user has interacted with the calculator
   const [hasInteracted, setHasInteracted] = useState(false);
@@ -17,23 +17,26 @@ export default function DownPayment({ surveyData, updateSurveyData, onNext, onBa
   // Function to grab data from PaymentCalculator
   const capturePaymentDetails = () => {
     // Get values based on selected option
-    let downPayment, interestRate, monthlyPayment;
+    let downPayment, interestRate, monthlyPayment, loanAmount;
     
     switch (selectedOption) {
       case "2":
         downPayment = surveyData.propertyData?.downPaymentTwo || "";
         interestRate = surveyData.propertyData?.interestTwo || "";
         monthlyPayment = surveyData.propertyData?.monthlyPaymentTwo || "";
+        loanAmount = surveyData.propertyData?.loanAmountTwo || "";
         break;
       case "3":
         downPayment = surveyData.propertyData?.downPaymentThree || "";
         interestRate = surveyData.propertyData?.interestThree || "";
         monthlyPayment = surveyData.propertyData?.monthlyPaymentThree || "";
+        loanAmount = surveyData.propertyData?.loanAmountThree || "";
         break;
       default: // "1"
         downPayment = surveyData.propertyData?.downPaymentOne || "";
         interestRate = surveyData.propertyData?.interestOne || "";
         monthlyPayment = surveyData.propertyData?.monthlyPaymentOne || "";
+        loanAmount = surveyData.propertyData?.loanAmountOne || "";
         break;
     }
     
@@ -41,12 +44,14 @@ export default function DownPayment({ surveyData, updateSurveyData, onNext, onBa
     const cleanDownPayment = downPayment ? downPayment.toString().replace(/,/g, "") : "";
     const cleanInterestRate = interestRate ? interestRate.toString() : "";
     const cleanMonthlyPayment = monthlyPayment ? monthlyPayment.toString().replace(/,/g, "") : "";
+    const cleanLoanAmount = loanAmount ? loanAmount.toString().replace(/,/g, "") : "";
     
     // Update survey data with selected plan values
     updateSurveyData("selected_plan", selectedOption);
     updateSurveyData("down_payment", cleanDownPayment);
     updateSurveyData("interest_rate", cleanInterestRate);
     updateSurveyData("monthly_payment", cleanMonthlyPayment);
+    updateSurveyData("loan_amount", cleanLoanAmount);
     
     // Set disqualification flag if down payment is too low
     // This is application-specific and should be adjusted based on your criteria
@@ -66,6 +71,11 @@ export default function DownPayment({ surveyData, updateSurveyData, onNext, onBa
     // After selection changes, also capture the data
     setTimeout(capturePaymentDetails, 0);
   };
+  
+  // Ensure we update the surveyData when component mounts
+  useEffect(() => {
+    capturePaymentDetails();
+  }, [selectedOption]); // Re-run when selectedOption changes
   
   // Handle next button click
   const handleNext = () => {
@@ -93,15 +103,6 @@ export default function DownPayment({ surveyData, updateSurveyData, onNext, onBa
   // Get translations based on selected language
   const t = translations[surveyData.language || "en"];
   
-  // Custom PaymentCalculatorQualify with selection tracking
-  const CustomPaymentCalculator = () => (
-    <PaymentCalculatorQualify 
-      propertyData={surveyData.propertyData} 
-      onOptionChange={handlePlanSelectionChange}
-      initialOption={selectedOption}
-    />
-  );
-  
   return (
     <Card className="border-none shadow-none bg-transparent">
       <CardContent className="p-0">
@@ -118,7 +119,11 @@ export default function DownPayment({ surveyData, updateSurveyData, onNext, onBa
           
           {/* Payment Calculator Component */}
           <div className="mb-6">
-            <CustomPaymentCalculator />
+            <PaymentCalculatorQualify 
+              propertyData={surveyData.propertyData} 
+              onOptionChange={handlePlanSelectionChange}
+              initialOption={selectedOption}
+            />
           </div>
           
           {/* Navigation Buttons */}
