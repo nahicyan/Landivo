@@ -300,7 +300,7 @@ export default function PaymentCalculatorQualify({
                 <Label className="block text-sm font-semibold mb-1" style={{ color: themeColors.text }}>
                  Monthly Payment
                 </Label>
-                <div className="text-xl font-bold" style={{ color: themeColors.secondary }}>
+                <div className="text-lg font-semibold tracking-tight" style={{ color: themeColors.secondary }}>
                   ${parsedMonthlyPayment.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}/mo
                 </div>
               </div>
@@ -311,7 +311,7 @@ export default function PaymentCalculatorQualify({
                   <Label className="block text-sm font-semibold mb-1" style={{ color: "#030001" }}>
                     Total Monthly Payment
                   </Label>
-                  <div className="text-xl font-bold" style={{ color: themeColors.secondary }}>
+                  <div className="text-lg font-semibold tracking-tight" style={{ color: themeColors.secondary }}>
                     ${totalMonthlyPayment.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}/mo
                   </div>
                 </div>
