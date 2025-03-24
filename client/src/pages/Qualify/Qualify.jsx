@@ -186,9 +186,58 @@ export default function Qualify() {
   };
 
   // Handle form submission
-  const handleSubmitSurvey = async () => {
+const handleSubmitSurvey = async () => {
+  try {
     // Determine qualification status
     const isQualified = evaluateQualification();
+    
+    // Create a payload with all necessary data
+    const qualificationData = {
+      // Property Information
+      propertyId: surveyData.property_id,
+      propertyPrice: parseFloat(surveyData.property_price.replace(/,/g, '')),
+      
+      // Selected Payment Plan Data
+      loanAmount: surveyData.loan_amount ? parseFloat(surveyData.loan_amount.replace(/,/g, '')) : null,
+      interestRate: surveyData.interest_rate ? parseFloat(surveyData.interest_rate) : null,
+      monthlyPayment: surveyData.monthly_payment ? parseFloat(surveyData.monthly_payment.replace(/,/g, '')) : null,
+      downPayment: surveyData.down_payment ? parseFloat(surveyData.down_payment.replace(/,/g, '')) : null,
+      term: surveyData.propertyData?.term || null,
+      
+      // Survey Responses - renamed to match backend schema
+      language: surveyData.language,
+      homeUsage: surveyData.home_usage,
+      realEstateAgent: surveyData.real_estate_agent,
+      homePurchaseTiming: surveyData.home_purchase_timing,
+      currentHomeOwnership: surveyData.current_home_ownership,
+      currentOnAllPayments: surveyData.current_on_all_payments,
+      downPaymentPercentage: surveyData.down_payment_percentage,
+      employmentStatus: surveyData.employment_status,
+      verifyIncome: surveyData.verify_income,
+      incomeHistory: surveyData.income_history,
+      openCreditLines: surveyData.open_credit_lines,
+      totalMonthlyPayments: surveyData.total_monthly_payments ? parseFloat(surveyData.total_monthly_payments) : null,
+      grossAnnualIncome: surveyData.gross_annual_income,
+      foreclosureForbearance: surveyData.foreclosure_forbearance,
+      declaredBankruptcy: surveyData.declared_bankruptcy,
+      currentCreditScore: surveyData.current_credit_score,
+      liensOrJudgments: surveyData.liens_or_judgments,
+      
+      // Contact Information
+      firstName: surveyData.first_name,
+      lastName: surveyData.last_name,
+      email: surveyData.email,
+      phone: surveyData.phone,
+      
+      // Property Details
+      propertyAddress: surveyData.propertyData?.streetAddress || '',
+      propertyCity: surveyData.propertyData?.city || '',
+      propertyState: surveyData.propertyData?.state || '',
+      propertyZip: surveyData.propertyData?.zip || '',
+      
+      // Qualification status
+      qualified: isQualified,
+    };
     
     // Update survey data with qualification result
     setSurveyData(prev => ({
@@ -197,19 +246,31 @@ export default function Qualify() {
       submission_date: new Date().toISOString()
     }));
     
-    console.log("Submitting qualification data:", {
-      ...surveyData,
-      qualified: isQualified,
-      submission_date: new Date().toISOString()
+    console.log("Submitting qualification data:", qualificationData);
+    
+    // Submit to backend
+    const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/qualification/create`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(qualificationData),
+      credentials: 'include'
     });
     
-    // In production, submit to backend:
-    // await axios.post(
-    //   `${import.meta.env.VITE_SERVER_URL}/api/qualification/submit`, 
-    //   { ...surveyData, qualified: isQualified, submission_date: new Date().toISOString() },
-    //   { withCredentials: true }
-    // );
-  };
+    if (!response.ok) {
+      throw new Error(`Submission failed: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    console.log("Qualification submitted successfully:", result);
+    
+    return result;
+  } catch (error) {
+    console.error("Error submitting qualification:", error);
+    throw error;
+  }
+};
 
   // Show loading state while fetching property data
   if (loading) {

@@ -114,8 +114,7 @@ export const getPropertyOffers = async (propertyId) => {
     handleRequestError(error, "Failed to fetch property offers");
   }
 };
-
-// In your api.js file
+// New
 export const createResidencyWithFiles = async (formData) => {
   try {
     const response = await api.post('/residency/createWithFile', formData, {
@@ -126,6 +125,7 @@ export const createResidencyWithFiles = async (formData) => {
     handleRequestError(error, "Failed to create property with files");
   }
 };
+
 
 // Submit qualification data
 export const submitQualification = async (qualificationData) => {

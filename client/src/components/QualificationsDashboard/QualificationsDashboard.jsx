@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState, useEffect } from "react";
 import {
   flexRender,
@@ -37,6 +35,7 @@ export default function QualificationsDashboard() {
   });
   const [filter, setFilter] = useState({ qualified: undefined });
   const [selectedQualification, setSelectedQualification] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Fetch qualifications on component mount and when filters change
   useEffect(() => {
@@ -46,7 +45,10 @@ export default function QualificationsDashboard() {
         const data = await getAllQualifications(
           pagination.page, 
           pagination.limit,
-          filter
+          {
+            ...filter,
+            search: searchQuery
+          }
         );
         setQualifications(data.qualifications);
         setPagination(data.pagination);
@@ -58,7 +60,7 @@ export default function QualificationsDashboard() {
     };
 
     fetchQualifications();
-  }, [pagination.page, pagination.limit, filter]);
+  }, [pagination.page, pagination.limit, filter, searchQuery]);
 
   // Format currency for display
   const formatCurrency = (value) => {
@@ -160,6 +162,12 @@ export default function QualificationsDashboard() {
     setPagination(prev => ({ ...prev, page: 1 })); // Reset to first page
   };
 
+  // Handle search input
+  const handleSearch = (e) => {
+    setSearchQuery(e.target.value);
+    setPagination(prev => ({ ...prev, page: 1 })); // Reset to first page when searching
+  };
+
   return (
     <div className="max-w-7xl mx-auto p-4">
       <h1 className="text-3xl font-bold mb-8">Qualification Applications</h1>
@@ -185,9 +193,10 @@ export default function QualificationsDashboard() {
             <CardContent>
               <div className="flex gap-4 mb-4">
                 <Input 
-                  placeholder="Search..." 
+                  placeholder="Search by name, email, phone, or address..." 
                   className="max-w-xs"
-                  // Implement search functionality
+                  value={searchQuery}
+                  onChange={handleSearch}
                 />
                 <Select 
                   value={pagination.limit.toString()} 
@@ -246,7 +255,7 @@ export default function QualificationsDashboard() {
                     ) : (
                       <TableRow>
                         <TableCell colSpan={columns.length} className="h-24 text-center">
-                          No results.
+                          No results found.
                         </TableCell>
                       </TableRow>
                     )}
@@ -490,17 +499,26 @@ export default function QualificationsDashboard() {
                   <CardContent className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                     <div>
                       <p className="font-semibold">Property ID:</p>
-                      <p>{selectedQualification.propertyId}</p>
+                      <p>{selectedQualification.propertyId || 'N/A'}</p>
                     </div>
                     <div>
                       <p className="font-semibold">Address:</p>
-                      <p>{selectedQualification.propertyAddress}</p>
+                      <p>{selectedQualification.propertyAddress || 'N/A'}</p>
                       <p>{selectedQualification.propertyCity}, {selectedQualification.propertyState} {selectedQualification.propertyZip}</p>
                     </div>
                     <div>
                       <p className="font-semibold">Property Price:</p>
                       <p>{formatCurrency(selectedQualification.propertyPrice)}</p>
                     </div>
+                  </CardContent>
+                </Card>
+                
+                {/* Financing Information */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">Financing Details</CardTitle>
+                  </CardHeader>
+                  <CardContent className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                     <div>
                       <p className="font-semibold">Monthly Payment:</p>
                       <p>{formatCurrency(selectedQualification.monthlyPayment)}</p>
@@ -596,6 +614,10 @@ export default function QualificationsDashboard() {
                       <p>{selectedQualification.incomeHistory || 'N/A'}</p>
                     </div>
                     <div>
+                      <p className="font-semibold">Verify Income:</p>
+                      <p>{selectedQualification.verifyIncome || 'N/A'}</p>
+                    </div>
+                    <div>
                       <p className="font-semibold">Bankruptcy:</p>
                       <p>{selectedQualification.declaredBankruptcy || 'N/A'}</p>
                     </div>
@@ -606,6 +628,10 @@ export default function QualificationsDashboard() {
                     <div>
                       <p className="font-semibold">Liens/Judgments:</p>
                       <p>{selectedQualification.liensOrJudgments || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="font-semibold">Application Date:</p>
+                      <p>{format(new Date(selectedQualification.createdAt), "PPpp")}</p>
                     </div>
                   </CardContent>
                 </Card>

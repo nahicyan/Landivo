@@ -152,7 +152,6 @@ enum BuyerType {
 
 //----------------------  Modifcations for Qualifcations----------------------//
 
-// Add this to your existing schema.prisma file
 
 model Qualification {
   id                     String   @id @default(auto()) @map("_id") @db.ObjectId
