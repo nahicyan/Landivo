@@ -501,8 +501,8 @@ export default function QualificationsDashboard() {
                   </CardHeader>
                   <CardContent className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                     <div>
-                      <p className="font-semibold">Property ID:</p>
-                      <p>{selectedQualification.propertyId || 'N/A'}</p>
+                      <p className="font-semibold">Owner ID:</p>
+                      <p>{selectedQualification.ownerId || 'N/A'}</p>
                     </div>
                     <div>
                       <p className="font-semibold">Address:</p>

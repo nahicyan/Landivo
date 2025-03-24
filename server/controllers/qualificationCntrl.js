@@ -8,6 +8,7 @@ export const createQualification = asyncHandler(async (req, res) => {
   try {
     const {
       propertyId,
+      ownerId,
       propertyPrice,
       loanAmount,
       interestRate,
@@ -77,6 +78,7 @@ export const createQualification = asyncHandler(async (req, res) => {
     const qualification = await prisma.qualification.create({
       data: {
         propertyId,
+        ownerId: ownerId ? parseInt(ownerId) : null,
         propertyPrice: parseFloat(propertyPrice),
         loanAmount: loanAmount ? parseFloat(loanAmount) : null,
         interestRate: interestRate ? parseFloat(interestRate) : null,
@@ -259,7 +261,7 @@ async function sendQualificationEmail(qualification) {
         
         <div style="margin-bottom: 20px; padding: 15px; background-color: #f5f5f5; border-radius: 5px;">
           <h3 style="margin-top: 0; border-bottom: 1px solid #ddd; padding-bottom: 8px;">Property Information</h3>
-          <p><strong>Property ID:</strong> ${qualification.propertyId || 'N/A'}</p>
+          <p><strong>Property ID:</strong> ${qualification.ownerId || 'N/A'}</p>
           <p><strong>Property Address:</strong> ${qualification.propertyAddress || 'N/A'}, ${qualification.propertyCity || ''}, ${qualification.propertyState || ''} ${qualification.propertyZip || ''}</p>
           <p><strong>Property Price:</strong> ${formatCurrency(qualification.propertyPrice)}</p>
         </div>

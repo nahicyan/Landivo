@@ -157,6 +157,7 @@ model Qualification {
   id                     String   @id @default(auto()) @map("_id") @db.ObjectId
   propertyId             String?   // ID of the property being qualified for
   propertyPrice          Float    // Asking or financed price
+  ownerId                Int?
   loanAmount             Float?   // Selected loan amount
   interestRate           Float?   // Selected interest rate
   monthlyPayment         Float?   // Calculated monthly payment

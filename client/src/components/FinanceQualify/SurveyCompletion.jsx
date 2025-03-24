@@ -5,7 +5,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Clock, Download, Home } from "lucide-react";
+import { CheckCircle2, Phone, Upload, Home, Download } from "lucide-react";
 
 export default function SurveyCompletion({ surveyData }) {
   const navigate = useNavigate();
@@ -30,15 +30,15 @@ export default function SurveyCompletion({ surveyData }) {
       review: "We'll review your application and contact you shortly to discuss next steps for purchasing this property.",
       sorry: "We're Sorry",
       notQualified: "You Currently Do Not Qualify For Our Seller Finance Program",
-      thanks: "Thank you for your interest in our property.",
-      alternatives: "Consider these alternatives:",
-      alt1: "Increase your down payment to at least 10% of the property price",
-      alt2: "Improve your credit score (aim for 660+)",
-      alt3: "Establish a longer history of consistent income",
-      contact: "Contact our team to discuss other options",
+      helpMessage: "However, we may still be able to help!",
+      nextSteps: "Here's what you can do next:",
+      step1: "Provide additional documents (such as proof of income, bank statements, or credit report)",
+      step2: "Speak with our team to explore possible solutions",
+      reviewMessage: "We're happy to review your situation and see if we can find a way to move forward.",
       backToProperties: "Back to Properties",
       downloadResults: "Download Results",
-      contactUs: "Contact Our Team"
+      callTeam: "Call our team",
+      sendDocuments: "Send more Documents"
     },
     es: {
       evaluating: "Evaluando su solicitud...",
@@ -47,15 +47,15 @@ export default function SurveyCompletion({ surveyData }) {
       review: "Revisaremos su solicitud y nos comunicaremos con usted en breve para hablar sobre los próximos pasos para la compra de esta propiedad.",
       sorry: "Lo sentimos",
       notQualified: "Actualmente no califica para nuestro programa de financiación del vendedor",
-      thanks: "Gracias por su interés en nuestra propiedad.",
-      alternatives: "Considere estas alternativas:",
-      alt1: "Aumente su pago inicial a al menos el 10% del precio de la propiedad",
-      alt2: "Mejore su puntaje de crédito (apunte a 660+)",
-      alt3: "Establezca un historial más largo de ingresos constantes",
-      contact: "Contacte a nuestro equipo para hablar sobre otras opciones",
+      helpMessage: "Sin embargo, ¡aún podemos ayudarle!",
+      nextSteps: "Esto es lo que puede hacer a continuación:",
+      step1: "Proporcionar documentos adicionales (como comprobante de ingresos, estados de cuenta bancarios o informe crediticio)",
+      step2: "Hable con nuestro equipo para explorar posibles soluciones",
+      reviewMessage: "Estaremos encantados de revisar su situación y ver si podemos encontrar una manera de avanzar.",
       backToProperties: "Volver a Propiedades",
       downloadResults: "Descargar Resultados",
-      contactUs: "Contactar a Nuestro Equipo"
+      callTeam: "Llamar a nuestro equipo",
+      sendDocuments: "Enviar más documentos"
     }
   };
 
@@ -68,12 +68,16 @@ export default function SurveyCompletion({ surveyData }) {
   // Function to generate a PDF report (this would be implemented with a PDF library in practice)
   const handleDownloadResults = () => {
     alert("This feature would generate a PDF qualification report showing the user's qualification status and details.");
-    // In a real implementation, you'd use a library like jsPDF or call a backend endpoint
   };
   
-  // Function to navigate to contact page
-  const handleContactTeam = () => {
-    navigate("/support");
+  // Function to call the team
+  const handleCallTeam = () => {
+    window.location.href = "tel:+18172471312";
+  };
+  
+  // Function to send documents
+  const handleSendDocuments = () => {
+    window.location.href = "mailto:info@landivo.com?subject=Additional Documents for Qualification";
   };
 
   return (
@@ -93,60 +97,69 @@ export default function SurveyCompletion({ surveyData }) {
             <>
               {disqualified ? (
                 <div className="space-y-6">
-                  {/* Disqualified Result */}
+                  {/* Disqualified Result - Enhanced Design */}
                   <div className="flex flex-col items-center">
-                    <div className="w-16 h-16 rounded-full bg-[#f4f7ee] flex items-center justify-center mb-4">
-                      <span className="text-2xl font-bold text-[#3f4f24]">!</span>
+                    <div className="w-20 h-20 rounded-full bg-amber-50 border-2 border-amber-100 flex items-center justify-center mb-4">
+                      <span className="text-3xl font-bold text-amber-500">!</span>
                     </div>
-                    <h2 className="text-2xl font-semibold text-[#324c48] mb-2">
-                      {t.sorry} {firstName && `${firstName}`}
+                    <h2 className="text-2xl font-bold text-[#324c48] mb-2">
+                      {t.sorry}{firstName && `, ${firstName}`}
                     </h2>
-                    <p className="text-xl font-medium text-gray-700 mb-2">
-                      {t.notQualified}
-                    </p>
-                    <p className="text-lg text-[#324c48] mb-4">
-                      {t.thanks}
-                    </p>
+                    <div className="max-w-md mx-auto">
+                      <p className="text-xl font-medium text-gray-700 mb-2">
+                        {t.notQualified}
+                      </p>
+                      <p className="text-lg text-[#3f4f24] font-medium">
+                        {t.helpMessage}
+                      </p>
+                    </div>
                   </div>
                   
-                  {/* Alternatives */}
-                  <div className="bg-[#f4f7ee] rounded-lg p-4 mb-6 text-left">
-                    <h3 className="font-semibold text-[#3f4f24] mb-2">{t.alternatives}</h3>
-                    <ul className="space-y-2 text-[#324c48]">
-                      {/* <li className="flex items-start">
-                        <span className="mr-2">•</span>
-                        <span>{t.alt1}</span>
-                      </li> */}
+                  {/* Next Steps Section - Enhanced with shadcn */}
+                  <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 mb-6 max-w-md mx-auto">
+                    <h3 className="font-semibold text-[#3f4f24] mb-4 text-left">{t.nextSteps}</h3>
+                    <ul className="space-y-4 text-[#324c48] text-left">
                       <li className="flex items-start">
-                        <span className="mr-2">•</span>
-                        <span>{t.alt2}</span>
+                        <CheckCircle2 className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                        <span>{t.step1}</span>
                       </li>
                       <li className="flex items-start">
-                        <span className="mr-2">•</span>
-                        <span>{t.alt3}</span>
-                      </li>
-                      <li className="flex items-start">
-                        <span className="mr-2">•</span>
-                        <span>{t.contact}</span>
+                        <CheckCircle2 className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                        <span>{t.step2}</span>
                       </li>
                     </ul>
+                    <p className="mt-4 text-[#324c48] text-left">
+                      {t.reviewMessage}
+                    </p>
                   </div>
                   
-                  {/* Action Buttons */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Call-to-Action Buttons */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-md mx-auto">
                     <Button
-                      className="bg-[#324c48] hover:bg-[#3c5d58] text-white"
+                      className="bg-[#324c48] hover:bg-[#3c5d58] text-white py-6"
+                      onClick={handleCallTeam}
+                    >
+                      <Phone className="w-4 h-4 mr-2" />
+                      {t.callTeam}
+                    </Button>
+                    <Button
+                      className="bg-[#D4A017] hover:bg-[#b88914] text-white py-6"
+                      onClick={handleSendDocuments}
+                    >
+                      <Upload className="w-4 h-4 mr-2" />
+                      {t.sendDocuments}
+                    </Button>
+                  </div>
+                  
+                  {/* Back to Properties Link */}
+                  <div className="mt-6">
+                    <Button
+                      variant="outline"
+                      className="border-[#324c48] text-[#324c48]"
                       onClick={() => navigate("/properties")}
                     >
                       <Home className="w-4 h-4 mr-2" />
                       {t.backToProperties}
-                    </Button>
-                    <Button
-                      className="bg-[#D4A017] hover:bg-[#b88914] text-white"
-                      onClick={handleContactTeam}
-                    >
-                      <Clock className="w-4 h-4 mr-2" />
-                      {t.contactUs}
                     </Button>
                   </div>
                 </div>
@@ -154,11 +167,11 @@ export default function SurveyCompletion({ surveyData }) {
                 <div className="space-y-6">
                   {/* Qualified Result */}
                   <div className="flex flex-col items-center">
-                    <div className="w-16 h-16 rounded-full bg-[#f4f7ee] flex items-center justify-center mb-4">
-                      <span className="text-2xl font-bold text-[#3f4f24]">✓</span>
+                    <div className="w-20 h-20 rounded-full bg-green-50 border-2 border-green-100 flex items-center justify-center mb-4">
+                      <span className="text-3xl font-bold text-green-500">✓</span>
                     </div>
-                    <h2 className="text-2xl font-semibold text-[#3f4f24] mb-2">
-                      {t.congratulations} {firstName && `${firstName}!`}
+                    <h2 className="text-2xl font-bold text-[#3f4f24] mb-2">
+                      {t.congratulations}{firstName && ` ${firstName}!`}
                     </h2>
                     <p className="text-xl font-medium text-[#324c48] mb-2">
                       {t.completed}
@@ -170,8 +183,8 @@ export default function SurveyCompletion({ surveyData }) {
                   
                   {/* Display Selected Payment Plan Details */}
                   {surveyData.selected_plan && (
-                    <div className="bg-[#f4f7ee] rounded-lg p-4 mb-6">
-                      <h3 className="font-semibold text-[#3f4f24] mb-2">Selected Payment Plan Details</h3>
+                    <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 mb-6 max-w-md mx-auto">
+                      <h3 className="font-semibold text-[#3f4f24] mb-4 text-left">Selected Payment Plan Details</h3>
                       <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                         <div className="font-medium">Plan:</div>
                         <div>Plan {surveyData.selected_plan}</div>
@@ -189,16 +202,16 @@ export default function SurveyCompletion({ surveyData }) {
                   )}
                   
                   {/* Action Buttons */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-md mx-auto">
                     <Button
-                      className="bg-[#324c48] hover:bg-[#3c5d58] text-white"
+                      className="bg-[#324c48] hover:bg-[#3c5d58] text-white py-6"
                       onClick={handleDownloadResults}
                     >
                       <Download className="w-4 h-4 mr-2" />
                       {t.downloadResults}
                     </Button>
                     <Button
-                      className="bg-[#D4A017] hover:bg-[#b88914] text-white"
+                      className="bg-[#D4A017] hover:bg-[#b88914] text-white py-6"
                       onClick={() => navigate("/properties")}
                     >
                       <Home className="w-4 h-4 mr-2" />

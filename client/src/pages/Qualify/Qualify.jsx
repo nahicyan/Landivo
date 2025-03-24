@@ -67,6 +67,7 @@ export default function Qualify() {
   const [surveyData, setSurveyData] = useState({
     // Property Information
     property_id: "",
+    ownerId: "",
     property_price: "",
     property_title: "",
     property_location: "",
@@ -196,6 +197,7 @@ const handleSubmitSurvey = async () => {
       // Property Information
       propertyId: surveyData.property_id,
       propertyPrice: parseFloat(surveyData.property_price.replace(/,/g, '')),
+      ownerId: surveyData.propertyData?.ownerId || null,
       
       // Selected Payment Plan Data
       loanAmount: surveyData.loan_amount ? parseFloat(surveyData.loan_amount.replace(/,/g, '')) : null,
