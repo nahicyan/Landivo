@@ -25,18 +25,23 @@ export default function UserInfo({ surveyData, updateSurveyData, onSubmit, onBac
   };
 
   // Handle form submission
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    // Update parent state with form values
-    Object.keys(formData).forEach(key => {
-      updateSurveyData(key, formData[key]);
-    });
-    
-    // Call the onSubmit function passed from parent
+// Fixed version
+const handleSubmit = (e) => {
+  e.preventDefault();
+  
+  // First, create a complete update object with all values
+  const updates = {...formData};
+  
+  // Update parent state with all values at once
+  for (const key in updates) {
+    updateSurveyData(key, updates[key]);
+  }
+  
+  // Wait a moment to ensure state updates are processed
+  setTimeout(() => {
     onSubmit();
-  };
-
+  }, 100);
+};
   // Translation object based on selected language
   const translations = {
     en: {
