@@ -57,7 +57,8 @@ export default function CurrentCreditScore({ surveyData, updateSurveyData, onNex
     { value: "Fair (660-679)", label: t.fair },
     { value: "Below average (620-659)", label: t.belowAverage },
     { value: "Poor (580-619)", label: t.poor },
-    { value: "Bad (Below 580)", label: t.bad }
+    { value: "Bad (Below 580)", label: t.bad },
+    { value: "No Credit", label: t.noCredit }
   ];
 
   return (

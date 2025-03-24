@@ -137,7 +137,7 @@ export default function UserInfo({ surveyData, updateSurveyData, onSubmit, onBac
               
               <Button
                 type="submit"
-                className="bg-[#D4A017] hover:bg-[#b88914] text-white"
+                className="bg-[#3f4f24] hover:bg-[#546930] text-white"
               >
                 {t.submit}
               </Button>

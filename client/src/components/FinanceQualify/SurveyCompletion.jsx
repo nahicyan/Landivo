@@ -113,10 +113,10 @@ export default function SurveyCompletion({ surveyData }) {
                   <div className="bg-[#f4f7ee] rounded-lg p-4 mb-6 text-left">
                     <h3 className="font-semibold text-[#3f4f24] mb-2">{t.alternatives}</h3>
                     <ul className="space-y-2 text-[#324c48]">
-                      <li className="flex items-start">
+                      {/* <li className="flex items-start">
                         <span className="mr-2">•</span>
                         <span>{t.alt1}</span>
-                      </li>
+                      </li> */}
                       <li className="flex items-start">
                         <span className="mr-2">•</span>
                         <span>{t.alt2}</span>

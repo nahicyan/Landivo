@@ -5,7 +5,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-export default function VerifyIncomeSelfEmployed({ surveyData, updateSurveyData, onNext, onBack }) {
+export default function VerifyIncomeNotEmployed({ surveyData, updateSurveyData, onNext, onBack }) {
   // Handle selection
   const handleSelection = (choice) => {
     updateSurveyData("verify_income", choice);
@@ -15,15 +15,15 @@ export default function VerifyIncomeSelfEmployed({ surveyData, updateSurveyData,
   // Translation object based on selected language
   const translations = {
     en: {
-      title: "Can you verify your income by providing tax returns for the previous two years or 12 months of current bank statements showing deposits?",
-      yes: "Yes, I can",
-      no: "No, I cannot",
+      title: "Do you have another source of income?",
+      yes: "Yes, I do",
+      no: "No, I don't",
       back: "Back"
     },
     es: {
-      title: "¿Puede verificar sus ingresos proporcionando declaraciones de impuestos de los últimos dos años o 12 meses de estados de cuenta bancarios actuales que muestren depósitos?",
-      yes: "Sí, puedo",
-      no: "No, no puedo",
+      title: "¿Tiene otra fuente de ingresos?",
+      yes: "Sí, tengo",
+      no: "No, no tengo",
       back: "Atrás"
     }
   };
@@ -42,14 +42,14 @@ export default function VerifyIncomeSelfEmployed({ surveyData, updateSurveyData,
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8 max-w-md mx-auto">
             <Button
               className="py-6 px-4 bg-white hover:bg-[#f4f7ee] text-[#3f4f24] text-lg rounded-lg border border-[#3f4f24] transition-all duration-200 hover:shadow-md"
-              onClick={() => handleSelection("Yes, I can")}
+              onClick={() => handleSelection("Yes, I do")}
             >
               {t.yes}
             </Button>
             
             <Button
               className="py-6 px-4 bg-white hover:bg-[#f4f7ee] text-[#3f4f24] text-lg rounded-lg border border-[#3f4f24] transition-all duration-200 hover:shadow-md"
-              onClick={() => handleSelection("No, I cannot")}
+              onClick={() => handleSelection("No, I don't")}
             >
               {t.no}
             </Button>

@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@/components/ui/button";
+import { useParams } from "react-router-dom";
 import { PuffLoader } from "react-spinners";
 import { getProperty } from "@/utils/api";
-import axios from "axios";
+
+// Import navigation components
+import { NavigationProvider, StepContainer, useNavigation } from "@/components/FinanceQualify/NavigationProvider";
+import StepIndicator from "@/components/FinanceQualify/StepIndicator";
+import PropertyHeader from "@/components/FinanceQualify/PropertyHeader";
 
 // Import all qualification step components
 import LanguageSelection from "@/components/FinanceQualify/LanguageSelection";
@@ -31,11 +33,9 @@ import DownPayment from "@/components/FinanceQualify/DownPayment";
 import SurveyCompletion from "@/components/FinanceQualify/SurveyCompletion";
 
 export default function Qualify() {
-  const navigate = useNavigate();
   const { propertyId } = useParams();
   const [loading, setLoading] = useState(true);
   const [propertyData, setPropertyData] = useState(null);
-  const [currentStep, setCurrentStep] = useState(0);
   
   // Define all steps with their components in a standard format
   const steps = [
@@ -143,75 +143,6 @@ export default function Qualify() {
     }));
   };
 
-  // Helper to find step index by ID
-  const getStepIndexById = (stepId) => {
-    return steps.findIndex(step => step.id === stepId);
-  };
-
-  // Handle navigation to next step with conditional routing
-  const handleNext = () => {
-    // Handle special routing based on user selections
-    if (steps[currentStep].id === "employment_status") {
-      // Route to appropriate income verification based on employment status
-      const routeMap = {
-        "Employed": "verify_income_employed",
-        "Self-Employed 1099": "verify_income_self_employed",
-        "Not Employed": "verify_income_not_employed",
-        "Retired": "verify_income_retired"
-      };
-      
-      const nextStepId = routeMap[surveyData.employment_status];
-      if (nextStepId) {
-        const nextStepIndex = getStepIndexById(nextStepId);
-        if (nextStepIndex !== -1) {
-          setCurrentStep(nextStepIndex);
-          return;
-        }
-      }
-    }
-    
-    // Skip total_monthly_payments if no open credit lines
-    if (steps[currentStep].id === "open_credit_lines" && surveyData.open_credit_lines === "No, I don't") {
-      const grossIncomeStep = getStepIndexById("gross_annual_income");
-      if (grossIncomeStep !== -1) {
-        setCurrentStep(grossIncomeStep);
-        return;
-      }
-    }
-    
-    // Default behavior - go to next step
-    setCurrentStep(prevStep => Math.min(prevStep + 1, steps.length - 1));
-  };
-
-  // Handle navigation to previous step
-  const handleBack = () => {
-    // Handle special back navigation cases
-    const currentStepId = steps[currentStep].id;
-    
-    // When going back from income verification steps
-    if (["verify_income_employed", "verify_income_self_employed", 
-         "verify_income_not_employed", "verify_income_retired"].includes(currentStepId)) {
-      // Go back to employment status
-      const employmentStep = getStepIndexById("employment_status");
-      if (employmentStep !== -1) {
-        setCurrentStep(employmentStep);
-        return;
-      }
-    }
-    
-    // When going back from gross_annual_income after skipping total_monthly_payments
-    if (currentStepId === "gross_annual_income" && surveyData.open_credit_lines === "No, I don't") {
-      const openCreditStep = getStepIndexById("open_credit_lines");
-      if (openCreditStep !== -1) {
-        setCurrentStep(openCreditStep);
-        return;
-      }
-    }
-    
-    // Default behavior - go to previous step
-    setCurrentStep(prevStep => Math.max(prevStep - 1, 0));
-  };
-
   // Function to evaluate qualification status before submission
   const evaluateQualification = () => {
     // Define disqualification criteria
@@ -255,115 +186,29 @@ export default function Qualify() {
   };
 
   // Handle form submission
-  const handleSubmit = async () => {
-    try {
-      // Determine qualification status
-      const isQualified = evaluateQualification();
-      
-      // Update survey data with qualification result
-      setSurveyData(prev => ({
-        ...prev,
-        qualified: isQualified,
-        submission_date: new Date().toISOString()
-      }));
-      
-      // Log the submission data (for development)
-      console.log("Submitting qualification data:", {
-        ...surveyData,
-        qualified: isQualified,
-        submission_date: new Date().toISOString()
-      });
-      
-      // In production, submit to backend:
-      // await axios.post(
-      //   `${import.meta.env.VITE_SERVER_URL}/api/qualification/submit`, 
-      //   { ...surveyData, qualified: isQualified, submission_date: new Date().toISOString() },
-      //   { withCredentials: true }
-      // );
-      
-      // Move to completion step
-      setCurrentStep(steps.length - 1);
-    } catch (error) {
-      console.error("Error submitting qualification data:", error);
-      // Error handling could be added here
-    }
-  };
-
-  // Property Info Header Component
-  const PropertyHeader = () => {
-    if (!propertyData) return null;
+  const handleSubmitSurvey = async () => {
+    // Determine qualification status
+    const isQualified = evaluateQualification();
     
-    return (
-      <div className="mb-8 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-        <h1 
-          className="text-lg font-semibold text-[#3f4f24]"
-          dangerouslySetInnerHTML={{ __html: propertyData.title }}
-        />
-        <div className="flex items-center justify-between mt-2">
-          <p className="text-gray-600">
-            {propertyData.streetAddress}, {propertyData.city}, {propertyData.state}
-          </p>
-          <p className="font-semibold text-[#D4A017]">
-            ${propertyData.askingPrice?.toLocaleString() || "N/A"}
-          </p>
-        </div>
-      </div>
-    );
-  };
-
-  // Progress indicator component
-  const StepIndicator = () => {
-    // Calculate progress percentage
-    const progress = Math.floor((currentStep / (steps.length - 1)) * 100);
+    // Update survey data with qualification result
+    setSurveyData(prev => ({
+      ...prev,
+      qualified: isQualified,
+      submission_date: new Date().toISOString()
+    }));
     
-    // Define progress stages with their corresponding step ranges
-    const stages = [
-      { name: "Property", range: [0, 6] },    // Steps 0-6
-      { name: "Financial", range: [7, 14] },  // Steps 7-14
-      { name: "Credit", range: [15, 19] },    // Steps 15-19
-      { name: "Complete", range: [20, 21] }   // Steps 20-21
-    ];
+    console.log("Submitting qualification data:", {
+      ...surveyData,
+      qualified: isQualified,
+      submission_date: new Date().toISOString()
+    });
     
-    // Determine current stage
-    const currentStageIndex = stages.findIndex(
-      stage => currentStep >= stage.range[0] && currentStep <= stage.range[1]
-    );
-
-    return (
-      <div className="w-full mb-8">
-        {/* Progress bar */}
-        <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4 dark:bg-gray-700">
-          <div 
-            className="bg-[#3f4f24] h-2.5 rounded-full transition-all duration-300 ease-in-out" 
-            style={{ width: `${progress}%` }}
-          ></div>
-        </div>
-        
-        {/* Stage indicators */}
-        <div className="flex justify-between px-2">
-          {stages.map((stage, index) => (
-            <div key={index} className="flex flex-col items-center">
-              <div 
-                className={`w-4 h-4 rounded-full mb-1 ${
-                  index <= currentStageIndex 
-                    ? 'bg-[#3f4f24]' 
-                    : 'bg-gray-300'
-                }`}
-              ></div>
-              <span 
-                className={`text-xs ${
-                  index <= currentStageIndex 
-                    ? 'text-[#3f4f24] font-medium' 
-                    : 'text-gray-500'
-                }`}
-              >
-                {stage.name}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
+    // In production, submit to backend:
+    // await axios.post(
+    //   `${import.meta.env.VITE_SERVER_URL}/api/qualification/submit`, 
+    //   { ...surveyData, qualified: isQualified, submission_date: new Date().toISOString() },
+    //   { withCredentials: true }
+    // );
   };
 
   // Show loading state while fetching property data
@@ -375,36 +220,36 @@ export default function Qualify() {
     );
   }
 
-  // Get the current step component
-  const CurrentStepComponent = steps[currentStep].component;
-
   return (
     <div className="max-w-6xl mx-auto p-6 bg-[#FDF8F2] min-h-screen">
       {/* Property Header if propertyId is available */}
-      {propertyId && <PropertyHeader />}
+      {propertyId && <PropertyHeader propertyData={propertyData} />}
       
-      {/* Progress Indicator */}
-      <StepIndicator />
-
-      {/* Step Content with Animation */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={currentStep}
-          initial={{ x: 50, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          exit={{ x: -50, opacity: 0 }}
-          transition={{ duration: 0.3 }}
-          className="bg-white p-6 border border-gray-200 rounded-xl shadow-lg mx-auto max-w-2xl min-h-[400px]"
-        >
-          <CurrentStepComponent 
-            surveyData={surveyData}
-            updateSurveyData={updateSurveyData}
-            onNext={handleNext}
-            onBack={handleBack}
-            onSubmit={handleSubmit}
-          />
-        </motion.div>
-      </AnimatePresence>
+      {/* Navigation Provider wraps the entire qualification flow */}
+      <NavigationProvider 
+        steps={steps} 
+        surveyData={surveyData} 
+        updateSurveyData={updateSurveyData}
+        onSubmitSurvey={handleSubmitSurvey}
+      >
+        {({ currentStep, CurrentStepComponent, handleNext, handleBack, handleSubmit }) => (
+          <>
+            {/* Progress Indicator */}
+            <StepIndicator />
+            
+            {/* Step Content with Animation */}
+            <StepContainer key={currentStep}>
+              <CurrentStepComponent 
+                surveyData={surveyData}
+                updateSurveyData={updateSurveyData}
+                onNext={handleNext}
+                onBack={handleBack}
+                onSubmit={handleSubmit}
+              />
+            </StepContainer>
+          </>
+        )}
+      </NavigationProvider>
       
       {/* Development aids - only visible in development */}
       {import.meta.env.DEV && (
@@ -414,14 +259,6 @@ export default function Qualify() {
             <pre className="mt-2 text-xs overflow-auto max-h-60">
               {JSON.stringify(surveyData, null, 2)}
             </pre>
-          </details>
-          
-          <details className="mt-4">
-            <summary className="font-semibold cursor-pointer">Debug: Navigation</summary>
-            <div className="mt-2 p-3 bg-white rounded border border-gray-300">
-              <p className="font-semibold">Current Step: {steps[currentStep].id}</p>
-              <p className="font-semibold">Progress: {Math.floor((currentStep / (steps.length - 1)) * 100)}%</p>
-            </div>
           </details>
           
           <details className="mt-4">
