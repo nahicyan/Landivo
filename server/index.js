@@ -11,6 +11,7 @@ import { userRoute } from "./routes/userRoute.js";
 import { residencyRoute } from "./routes/residencyRoute.js";
 import { buyerRoute } from "./routes/buyerRoute.js";
 import { sessionLogger, ensureAuthenticated } from "./middlewares/sessionMiddleware.js";
+import { qualificationRoute } from "./routes/qualificationRoute.js";
 
 const app = express();
 const PORT = process.env.PORT || 8200;
@@ -72,6 +73,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/user", userRoute);
 app.use("/api/residency", residencyRoute);
 app.use("/api/buyer", buyerRoute);
+app.use("/api/qualification", qualificationRoute);
 
 // 7) Authentication routes
 app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));

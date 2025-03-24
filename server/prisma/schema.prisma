@@ -150,3 +150,54 @@ enum BuyerType {
     Wholesaler
 } 
 
+//----------------------  Modifcations for Qualifcations----------------------//
+
+// Add this to your existing schema.prisma file
+
+model Qualification {
+  id                     String   @id @default(auto()) @map("_id") @db.ObjectId
+  propertyId             String?   // ID of the property being qualified for
+  propertyPrice          Float    // Asking or financed price
+  loanAmount             Float?   // Selected loan amount
+  interestRate           Float?   // Selected interest rate
+  monthlyPayment         Float?   // Calculated monthly payment
+  downPayment            Float?   // Selected down payment amount
+  term                   Int?     // Loan term in months
+  
+  // Survey answers
+  language               String?
+  homeUsage              String?  // Primary residence, Secondary/Vacation, Investment
+  realEstateAgent        String?  // Yes/No
+  homePurchaseTiming     String?  // When they plan to purchase
+  currentHomeOwnership   String?  // Current living situation
+  currentOnAllPayments   String?  // Yes/No
+  employmentStatus       String?  // Employed, Self-Employed, Not Employed, Retired
+  verifyIncome           String?  // Yes/No can verify income
+  incomeHistory          String?  // Has 2-year income history
+  openCreditLines        String?  // Yes/No has open credit lines
+  totalMonthlyPayments   Float?   // Their current debt payments
+  grossAnnualIncome      String?  // Income range
+  foreclosureForbearance String?  // Yes/No in foreclosure
+  declaredBankruptcy     String?  // Yes/No bankruptcy
+  currentCreditScore     String?  // Credit score range
+  liensOrJudgments       String?  // Yes/No has liens
+  
+  // Personal information
+  firstName              String
+  lastName               String
+  email                  String
+  phone                  String
+  
+  // Status
+  qualified              Boolean  @default(false)
+  disqualificationReason String?
+  
+  // Property info passed from Landivo
+  propertyAddress        String?
+  propertyCity           String?
+  propertyState          String?
+  propertyZip            String?
+  
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}

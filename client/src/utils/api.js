@@ -127,3 +127,38 @@ export const createResidencyWithFiles = async (formData) => {
   }
 };
 
+// Submit qualification data
+export const submitQualification = async (qualificationData) => {
+  try {
+    const response = await api.post('/qualification/create', qualificationData);
+    return response.data;
+  } catch (error) {
+    handleRequestError(error, "Failed to submit qualification");
+  }
+};
+
+// Get qualifications for a property
+export const getPropertyQualifications = async (propertyId) => {
+  try {
+    const response = await api.get(`/qualification/property/${propertyId}`);
+    return response.data;
+  } catch (error) {
+    handleRequestError(error, "Failed to fetch property qualifications");
+  }
+};
+
+// Get all qualifications with optional filtering
+export const getAllQualifications = async (page = 1, limit = 10, filters = {}) => {
+  try {
+    const queryParams = new URLSearchParams({
+      page,
+      limit,
+      ...filters
+    });
+    
+    const response = await api.get(`/qualification/all?${queryParams}`);
+    return response.data;
+  } catch (error) {
+    handleRequestError(error, "Failed to fetch qualifications");
+  }
+};

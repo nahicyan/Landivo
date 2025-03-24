@@ -28,6 +28,7 @@ import CreateUser from "./pages/CreateUser/CreateUser";
 import ScrollToTop from "./components/ScrollToTop/ScrollToTop";
 import Sell from "./pages/Sell/Sell";
 import Qualify from "./pages/Qualify/Qualify";
+import QualificationsDashboard from "./components/QualificationsDashboard/QualificationsDashboard";
 
 
 
@@ -54,6 +55,7 @@ function App() {
                     <Route path=":propertyId/qualify" element={<Qualify />} />
                   </Route>
                   <Route path="/admin" element={<Admin />} />
+                  <Route path="/admin/qualifications" element={<QualificationsDashboard />} />
                   <Route path="/sell" element={<Sell />} />
                   <Route path="/financing" element={<Financing />} />
                   <Route path="/support" element={<Support />} />
