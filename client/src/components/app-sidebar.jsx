@@ -58,6 +58,7 @@ const data = {
       isActive: true,
       items: [
         { title: "Add Property", url: "/add-property" },
+        { title: "Financing Applicaitons", url: "/admin/qualifications" },
         { title: "Starred", url: "#" },
         { title: "Settings", url: "#" },
       ],
