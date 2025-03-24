@@ -121,7 +121,7 @@ export const createQualification = asyncHandler(async (req, res) => {
     });
 
     // Send email notification to administrators
-    await sendQualificationEmail(qualification);
+    sendQualificationEmail(qualification);
 
     // Return success response
     res.status(201).json({

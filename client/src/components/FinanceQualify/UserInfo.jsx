@@ -9,8 +9,8 @@ import { Label } from "@/components/ui/label";
 
 export default function UserInfo({ surveyData, updateSurveyData, onSubmit, onBack }) {
   const [formData, setFormData] = useState({
-    first_name: surveyData.first_name || "",
-    last_name: surveyData.last_name || "",
+   firstName: surveyData.firstName || "",
+    lastName: surveyData.lastName || "",
     email: surveyData.email || "",
     phone: surveyData.phone || ""
   });
@@ -73,12 +73,12 @@ export default function UserInfo({ surveyData, updateSurveyData, onSubmit, onBac
           <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2 text-left">
-                <Label htmlFor="first_name" className="text-[#324c48]">{t.firstName}</Label>
+                <Label htmlFor="firstName" className="text-[#324c48]">{t.firstName}</Label>
                 <Input
-                  id="first_name"
-                  name="first_name"
+                  id="firstName"
+                  name="firstName"
                   type="text"
-                  value={formData.first_name}
+                  value={formData.firstName}
                   onChange={handleChange}
                   className="border-[#c1d7d3] focus:border-[#324c48] focus:ring-[#324c48]"
                   required
@@ -86,12 +86,12 @@ export default function UserInfo({ surveyData, updateSurveyData, onSubmit, onBac
               </div>
               
               <div className="space-y-2 text-left">
-                <Label htmlFor="last_name" className="text-[#324c48]">{t.lastName}</Label>
+                <Label htmlFor="lastName" className="text-[#324c48]">{t.lastName}</Label>
                 <Input
-                  id="last_name"
-                  name="last_name"
+                  id="lastName"
+                  name="lastName"
                   type="text"
-                  value={formData.last_name}
+                  value={formData.lastName}
                   onChange={handleChange}
                   className="border-[#c1d7d3] focus:border-[#324c48] focus:ring-[#324c48]"
                   required

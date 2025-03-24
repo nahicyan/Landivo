@@ -63,7 +63,7 @@ export default function SurveyCompletion({ surveyData }) {
   const t = translations[surveyData.language || "en"];
   
   // First name to personalize the message
-  const firstName = surveyData.first_name || "";
+  const firstName = surveyData.firstName || "";
 
   // Function to generate a PDF report (this would be implemented with a PDF library in practice)
   const handleDownloadResults = () => {

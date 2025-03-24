@@ -99,8 +99,8 @@ export default function Qualify() {
     loan_amount: "",
 
     // Contact Information
-    first_name: "",
-    last_name: "",
+   firstName: "",
+    lastName: "",
     email: "",
     phone: "",
   });
@@ -224,8 +224,8 @@ const handleSubmitSurvey = async () => {
       liensOrJudgments: surveyData.liens_or_judgments,
       
       // Contact Information
-      firstName: surveyData.first_name,
-      lastName: surveyData.last_name,
+      firstName: surveyData.firstName,
+      lastName: surveyData.lastName,
       email: surveyData.email,
       phone: surveyData.phone,
       

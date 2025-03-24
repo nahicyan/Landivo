@@ -42,13 +42,15 @@ export default function QualificationsDashboard() {
     const fetchQualifications = async () => {
       try {
         setLoading(true);
+        // Build a filters object that only includes 'qualified' if it’s defined.
+        const filters = { search: searchQuery };
+        if (filter.qualified !== undefined) {
+          filters.qualified = filter.qualified;
+        }
         const data = await getAllQualifications(
-          pagination.page, 
+          pagination.page,
           pagination.limit,
-          {
-            ...filter,
-            search: searchQuery
-          }
+          filters
         );
         setQualifications(data.qualifications);
         setPagination(data.pagination);
@@ -61,6 +63,7 @@ export default function QualificationsDashboard() {
 
     fetchQualifications();
   }, [pagination.page, pagination.limit, filter, searchQuery]);
+
 
   // Format currency for display
   const formatCurrency = (value) => {
@@ -84,9 +87,9 @@ export default function QualificationsDashboard() {
       accessorKey: "qualified",
       header: "Status",
       cell: ({ row }) => (
-        <Badge 
-          className={row.original.qualified ? 
-            "bg-green-100 text-green-800" : 
+        <Badge
+          className={row.original.qualified ?
+            "bg-green-100 text-green-800" :
             "bg-red-100 text-red-800"
           }
         >
@@ -113,8 +116,8 @@ export default function QualificationsDashboard() {
       id: "actions",
       header: "Actions",
       cell: ({ row }) => (
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           size="sm"
           onClick={() => setSelectedQualification(row.original)}
         >
@@ -139,13 +142,13 @@ export default function QualificationsDashboard() {
       },
     },
     onPaginationChange: (updater) => {
-      const newPagination = typeof updater === 'function' 
-        ? updater({ 
-            pageIndex: pagination.page - 1, 
-            pageSize: pagination.limit 
-          }) 
+      const newPagination = typeof updater === 'function'
+        ? updater({
+          pageIndex: pagination.page - 1,
+          pageSize: pagination.limit
+        })
         : updater;
-        
+
       setPagination(prev => ({
         ...prev,
         page: newPagination.pageIndex + 1,
@@ -171,20 +174,20 @@ export default function QualificationsDashboard() {
   return (
     <div className="max-w-7xl mx-auto p-4">
       <h1 className="text-3xl font-bold mb-8">Qualification Applications</h1>
-      
+
       <Tabs defaultValue="all" className="w-full">
         <TabsList>
           <TabsTrigger value="all" onClick={() => handleFilterChange("qualified", undefined)}>
             All Applications
           </TabsTrigger>
-          <TabsTrigger value="qualified" onClick={() => handleFilterChange("qualified", "true")}>
+          <TabsTrigger value="qualified" onClick={() => handleFilterChange("qualified", true)}>
             Qualified
           </TabsTrigger>
-          <TabsTrigger value="not-qualified" onClick={() => handleFilterChange("qualified", "false")}>
+          <TabsTrigger value="not-qualified" onClick={() => handleFilterChange("qualified", false)}>
             Not Qualified
           </TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="all" className="mt-4">
           <Card>
             <CardHeader>
@@ -192,14 +195,14 @@ export default function QualificationsDashboard() {
             </CardHeader>
             <CardContent>
               <div className="flex gap-4 mb-4">
-                <Input 
-                  placeholder="Search by name, email, phone, or address..." 
+                <Input
+                  placeholder="Search by name, email, phone, or address..."
                   className="max-w-xs"
                   value={searchQuery}
                   onChange={handleSearch}
                 />
-                <Select 
-                  value={pagination.limit.toString()} 
+                <Select
+                  value={pagination.limit.toString()}
                   onValueChange={(val) => setPagination(prev => ({ ...prev, limit: parseInt(val) }))}
                 >
                   <SelectTrigger className="w-[120px]">
@@ -212,7 +215,7 @@ export default function QualificationsDashboard() {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               {/* Table using shadcn components */}
               <div className="rounded-md border">
                 <Table>
@@ -224,9 +227,9 @@ export default function QualificationsDashboard() {
                             {header.isPlaceholder
                               ? null
                               : flexRender(
-                                  header.column.columnDef.header,
-                                  header.getContext()
-                                )}
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
                           </TableHead>
                         ))}
                       </TableRow>
@@ -262,22 +265,22 @@ export default function QualificationsDashboard() {
                   </TableBody>
                 </Table>
               </div>
-              
+
               {/* Pagination controls */}
               <div className="flex items-center justify-between mt-4">
                 <div className="text-sm text-muted-foreground">
                   Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.totalCount)} of {pagination.totalCount}
                 </div>
                 <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={() => table.previousPage()}
                     disabled={!table.getCanPreviousPage()}
                   >
                     Previous
                   </Button>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={() => table.nextPage()}
                     disabled={!table.getCanNextPage()}
                   >
@@ -288,7 +291,7 @@ export default function QualificationsDashboard() {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="qualified" className="mt-4">
           <Card>
             <CardHeader>
@@ -306,9 +309,9 @@ export default function QualificationsDashboard() {
                             {header.isPlaceholder
                               ? null
                               : flexRender(
-                                  header.column.columnDef.header,
-                                  header.getContext()
-                                )}
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
                           </TableHead>
                         ))}
                       </TableRow>
@@ -344,22 +347,22 @@ export default function QualificationsDashboard() {
                   </TableBody>
                 </Table>
               </div>
-              
+
               {/* Same pagination controls */}
               <div className="flex items-center justify-between mt-4">
                 <div className="text-sm text-muted-foreground">
                   Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.totalCount)} of {pagination.totalCount}
                 </div>
                 <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={() => table.previousPage()}
                     disabled={!table.getCanPreviousPage()}
                   >
                     Previous
                   </Button>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={() => table.nextPage()}
                     disabled={!table.getCanNextPage()}
                   >
@@ -370,7 +373,7 @@ export default function QualificationsDashboard() {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="not-qualified" className="mt-4">
           <Card>
             <CardHeader>
@@ -388,9 +391,9 @@ export default function QualificationsDashboard() {
                             {header.isPlaceholder
                               ? null
                               : flexRender(
-                                  header.column.columnDef.header,
-                                  header.getContext()
-                                )}
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
                           </TableHead>
                         ))}
                       </TableRow>
@@ -426,22 +429,22 @@ export default function QualificationsDashboard() {
                   </TableBody>
                 </Table>
               </div>
-              
+
               {/* Same pagination controls */}
               <div className="flex items-center justify-between mt-4">
                 <div className="text-sm text-muted-foreground">
                   Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.totalCount)} of {pagination.totalCount}
                 </div>
                 <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={() => table.previousPage()}
                     disabled={!table.getCanPreviousPage()}
                   >
                     Previous
                   </Button>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={() => table.nextPage()}
                     disabled={!table.getCanNextPage()}
                   >
@@ -453,7 +456,7 @@ export default function QualificationsDashboard() {
           </Card>
         </TabsContent>
       </Tabs>
-      
+
       {/* Qualification Details Modal/Dialog */}
       {selectedQualification && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
@@ -463,25 +466,25 @@ export default function QualificationsDashboard() {
                 <span>
                   Application Details - {selectedQualification.firstName} {selectedQualification.lastName}
                 </span>
-                <button 
+                <button
                   onClick={() => setSelectedQualification(null)}
                   className="text-gray-500 hover:text-gray-700"
                 >
                   &times;
                 </button>
               </h2>
-              
+
               {/* Status Badge */}
               <div className="mb-6">
-                <Badge 
-                  className={`text-base py-1 px-3 ${selectedQualification.qualified ? 
-                    "bg-green-100 text-green-800" : 
+                <Badge
+                  className={`text-base py-1 px-3 ${selectedQualification.qualified ?
+                    "bg-green-100 text-green-800" :
                     "bg-red-100 text-red-800"}`
                   }
                 >
                   {selectedQualification.qualified ? "QUALIFIED" : "NOT QUALIFIED"}
                 </Badge>
-                
+
                 {!selectedQualification.qualified && selectedQualification.disqualificationReason && (
                   <div className="mt-2 p-3 bg-red-50 border border-red-100 rounded-md">
                     <h3 className="font-semibold text-red-700">Disqualification Reason:</h3>
@@ -489,7 +492,7 @@ export default function QualificationsDashboard() {
                   </div>
                 )}
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Property Information */}
                 <Card>
@@ -512,7 +515,7 @@ export default function QualificationsDashboard() {
                     </div>
                   </CardContent>
                 </Card>
-                
+
                 {/* Financing Information */}
                 <Card>
                   <CardHeader className="pb-2">
@@ -541,7 +544,7 @@ export default function QualificationsDashboard() {
                     </div>
                   </CardContent>
                 </Card>
-                
+
                 {/* Applicant Information */}
                 <Card>
                   <CardHeader className="pb-2">
@@ -574,7 +577,7 @@ export default function QualificationsDashboard() {
                     </div>
                   </CardContent>
                 </Card>
-                
+
                 {/* Survey Responses */}
                 <Card className="md:col-span-2">
                   <CardHeader className="pb-2">
@@ -636,10 +639,10 @@ export default function QualificationsDashboard() {
                   </CardContent>
                 </Card>
               </div>
-              
+
               <div className="mt-6 flex justify-end gap-3">
                 <Button variant="outline" onClick={() => setSelectedQualification(null)}>Close</Button>
-                <Button 
+                <Button
                   onClick={() => window.location.href = `mailto:${selectedQualification.email}`}
                 >
                   Contact Applicant
