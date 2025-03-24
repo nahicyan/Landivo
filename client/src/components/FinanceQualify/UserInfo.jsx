@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Card, 
   CardContent 
@@ -8,12 +8,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export default function UserInfo({ surveyData, updateSurveyData, onSubmit, onBack }) {
+  // Initialize local form state from parent surveyData
   const [formData, setFormData] = useState({
-   firstName: surveyData.firstName || "",
+    firstName: surveyData.firstName || "",
     lastName: surveyData.lastName || "",
     email: surveyData.email || "",
     phone: surveyData.phone || ""
   });
+
+  // Update local state if surveyData changes
+  useEffect(() => {
+    setFormData({
+      firstName: surveyData.firstName || "",
+      lastName: surveyData.lastName || "",
+      email: surveyData.email || "",
+      phone: surveyData.phone || ""
+    });
+  }, [surveyData]);
 
   // Handle input changes
   const handleChange = (e) => {
@@ -22,26 +33,27 @@ export default function UserInfo({ surveyData, updateSurveyData, onSubmit, onBac
       ...prev,
       [name]: value
     }));
+    
+    // Also update the parent state immediately
+    updateSurveyData(name, value);
   };
 
   // Handle form submission
-// Fixed version
-const handleSubmit = (e) => {
-  e.preventDefault();
-  
-  // First, create a complete update object with all values
-  const updates = {...formData};
-  
-  // Update parent state with all values at once
-  for (const key in updates) {
-    updateSurveyData(key, updates[key]);
-  }
-  
-  // Wait a moment to ensure state updates are processed
-  setTimeout(() => {
-    onSubmit();
-  }, 100);
-};
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    // Update parent state with all values
+    updateSurveyData("firstName", formData.firstName);
+    updateSurveyData("lastName", formData.lastName);
+    updateSurveyData("email", formData.email);
+    updateSurveyData("phone", formData.phone);
+    
+    // Move to the next step after a short delay to ensure state updates are processed
+    setTimeout(() => {
+      onSubmit();
+    }, 100);
+  };
+
   // Translation object based on selected language
   const translations = {
     en: {
