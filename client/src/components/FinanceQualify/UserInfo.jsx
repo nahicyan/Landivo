@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { parsePhoneNumber } from "libphonenumber-js";
 import { 
   Card, 
   CardContent 
@@ -6,6 +7,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 export default function UserInfo({ surveyData, updateSurveyData, onSubmit, onBack }) {
   // Initialize local form state from parent surveyData
@@ -15,6 +24,11 @@ export default function UserInfo({ surveyData, updateSurveyData, onSubmit, onBac
     email: surveyData.email || "",
     phone: surveyData.phone || ""
   });
+
+  // State for the Dialog notification
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogMessage, setDialogMessage] = useState("");
+  const [dialogType, setDialogType] = useState("warning");
 
   // Update local state if surveyData changes
   useEffect(() => {
@@ -38,9 +52,23 @@ export default function UserInfo({ surveyData, updateSurveyData, onSubmit, onBac
     updateSurveyData(name, value);
   };
 
-  // Handle form submission
+  // Handle form submission with validation
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    // Validate phone number
+    try {
+      const phoneNumber = parsePhoneNumber(formData.phone, "US");
+      if (!phoneNumber?.isValid()) {
+        setDialogMessage("Please enter a valid US phone number.");
+        setDialogOpen(true);
+        return;
+      }
+    } catch (error) {
+      setDialogMessage("Please enter a valid US phone number format.");
+      setDialogOpen(true);
+      return;
+    }
     
     // Update parent state with all values
     updateSurveyData("firstName", formData.firstName);
@@ -61,18 +89,24 @@ export default function UserInfo({ surveyData, updateSurveyData, onSubmit, onBac
       firstName: "First Name",
       lastName: "Last Name",
       email: "Email Address",
-      phone: "Phone Number",
+      phone: "Phone Number (US only)",
+      /* phoneHint: "Format: (555) 555-5555", */
       submit: "Submit Application",
-      back: "Back"
+      back: "Back",
+      warning: "Warning",
+      okay: "Okay"
     },
     es: {
       title: "Díganos cómo podemos comunicarnos con usted",
       firstName: "Nombre",
       lastName: "Apellido",
       email: "Correo electrónico",
-      phone: "Número de teléfono",
+      phone: "Número de teléfono (solo EE.UU.)",
+      /* phoneHint: "Formato: (555) 555-5555", */
       submit: "Enviar solicitud",
-      back: "Atrás"
+      back: "Atrás",
+      warning: "Advertencia",
+      okay: "Aceptar"
     }
   };
 
@@ -135,11 +169,13 @@ export default function UserInfo({ surveyData, updateSurveyData, onSubmit, onBac
                 id="phone"
                 name="phone"
                 type="tel"
+                /* placeholder="(555) 555-5555" */
                 value={formData.phone}
                 onChange={handleChange}
                 className="border-[#c1d7d3] focus:border-[#324c48] focus:ring-[#324c48]"
                 required
               />
+              <p className="text-xs text-gray-500 mt-1">{t.phoneHint}</p>
             </div>
             
             <div className="flex justify-between mt-8">
@@ -162,6 +198,26 @@ export default function UserInfo({ surveyData, updateSurveyData, onSubmit, onBac
           </form>
         </div>
       </CardContent>
+
+      {/* Dialog for phone validation errors */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="bg-[#FFF] text-[#050002] border border-[#405025]/30 shadow-lg">
+          <DialogHeader>
+            <DialogTitle className="text-red-600">
+              {t.warning}
+            </DialogTitle>
+            <DialogDescription>{dialogMessage}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              onClick={() => setDialogOpen(false)}
+              className="bg-[#324c48] text-[#FFF]"
+            >
+              {t.okay}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
