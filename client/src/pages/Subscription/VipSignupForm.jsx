@@ -1,0 +1,387 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { UserIcon, EnvelopeIcon, PhoneIcon, StarIcon } from '@heroicons/react/24/outline';
+import { parsePhoneNumber } from 'libphonenumber-js';
+
+export default function VipSignupForm() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
+  
+  // Form state
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    phone: '',
+    buyerType: '',
+  });
+
+  // Form validation errors
+  const [validationErrors, setValidationErrors] = useState({
+    firstName: '',
+    lastName: '',
+    phone: '',
+    buyerType: '',
+  });
+
+  // Get email from URL parameters on component mount
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const emailParam = searchParams.get('email');
+    if (emailParam) {
+      setEmail(emailParam);
+    } else {
+      // If no email, redirect back to homepage
+      navigate('/');
+    }
+  }, [location, navigate]);
+
+  // Handle input changes
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    
+    // Clear validation error when user starts typing
+    setValidationErrors(prev => ({
+      ...prev,
+      [name]: ''
+    }));
+
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Handle buyer type selection
+  const handleBuyerTypeChange = (value) => {
+    setValidationErrors(prev => ({
+      ...prev,
+      buyerType: ''
+    }));
+    
+    setFormData(prev => ({
+      ...prev,
+      buyerType: value
+    }));
+  };
+
+  // Phone number validation based on Offer.jsx implementation
+  const validatePhone = (phoneInput) => {
+    try {
+      // Try to parse the phone number using libphonenumber-js
+      const phoneNumber = parsePhoneNumber(phoneInput, 'US');
+      return phoneNumber?.isValid();
+    } catch (error) {
+      console.error("Phone validation error:", error);
+      return false;
+    }
+  };
+
+  // Format phone number as user types
+  const formatPhoneNumber = (input) => {
+    // Strip all non-numeric characters
+    const digitsOnly = input.replace(/\D/g, '');
+    
+    // Format the number as user types
+    let formattedNumber = '';
+    if (digitsOnly.length <= 3) {
+      formattedNumber = digitsOnly;
+    } else if (digitsOnly.length <= 6) {
+      formattedNumber = `(${digitsOnly.slice(0, 3)}) ${digitsOnly.slice(3)}`;
+    } else {
+      formattedNumber = `(${digitsOnly.slice(0, 3)}) ${digitsOnly.slice(3, 6)}-${digitsOnly.slice(6, 10)}`;
+    }
+    
+    return formattedNumber;
+  };
+
+  // Handle phone number input specifically
+  const handlePhoneChange = (e) => {
+    const formatted = formatPhoneNumber(e.target.value);
+    
+    // Clear validation error when user starts typing
+    setValidationErrors(prev => ({
+      ...prev,
+      phone: ''
+    }));
+    
+    setFormData(prev => ({
+      ...prev,
+      phone: formatted
+    }));
+  };
+
+  // Validate the entire form
+  const validateForm = () => {
+    const errors = {
+      firstName: '',
+      lastName: '',
+      phone: '',
+      buyerType: '',
+    };
+    
+    let isValid = true;
+
+    // First name validation
+    if (!formData.firstName.trim()) {
+      errors.firstName = 'First name is required';
+      isValid = false;
+    }
+
+    // Last name validation
+    if (!formData.lastName.trim()) {
+      errors.lastName = 'Last name is required';
+      isValid = false;
+    }
+
+    // Phone validation
+    if (!formData.phone.trim()) {
+      errors.phone = 'Phone number is required';
+      isValid = false;
+    } else if (!validatePhone(formData.phone)) {
+      errors.phone = 'Please enter a valid phone number';
+      isValid = false;
+    }
+
+    // Buyer type validation
+    if (!formData.buyerType) {
+      errors.buyerType = 'Please select a buyer type';
+      isValid = false;
+    }
+
+    setValidationErrors(errors);
+    return isValid;
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    
+    // Validate form
+    if (!validateForm()) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      
+      // In a real implementation, you would make an API call here
+      // to create the buyer record, for example:
+      /*
+      const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/buyer/create`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          phone: formData.phone,
+          buyerType: formData.buyerType
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create buyer profile');
+      }
+      
+      const data = await response.json();
+      */
+      
+      // For this example, we'll simulate a successful API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setSuccess(true);
+    } catch (err) {
+      console.error("Error creating buyer profile:", err);
+      setError(err.message || 'An error occurred while creating your profile');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="bg-[#FDF8F2] min-h-screen py-16">
+      <div className="max-w-3xl mx-auto px-4">
+        <div className="text-center mb-8">
+          <StarIcon className="h-12 w-12 text-[#D4A017] mx-auto mb-2" />
+          <h1 className="text-3xl font-bold text-[#3f4f24] mb-2">One Last Step to Join Our VIP Buyers List</h1>
+          <p className="text-lg text-[#324c48]">
+            Please complete your profile to get access to exclusive property deals
+          </p>
+        </div>
+
+        {error && (
+          <Alert className="mb-6 bg-red-50 border-red-300 text-red-800">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        {success ? (
+          <Card className="p-8 border-[#3f4f24] bg-[#e8efdc]">
+            <div className="text-center">
+              <div className="bg-[#3f4f24] w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-bold text-[#3f4f24] mb-4">You're now on our VIP Buyers List!</h2>
+              <p className="text-lg text-[#324c48] mb-6">
+                Thank you for joining, {formData.firstName}! You'll be among the first to hear about our exclusive property deals and receive special discounts.
+              </p>
+              <Button 
+                onClick={() => navigate('/')}
+                className="bg-[#324c48] hover:bg-[#3f4f24] text-white px-6 py-2"
+              >
+                Return to Homepage
+              </Button>
+            </div>
+          </Card>
+        ) : (
+          <Card className="border-[#324c48]/20">
+            <CardHeader className="border-b pb-6">
+              <CardTitle className="text-xl text-[#3f4f24] flex items-center">
+                <UserIcon className="w-5 h-5 mr-2" />
+                Your Information
+              </CardTitle>
+              <CardDescription>
+                Your email: <span className="font-medium">{email}</span>
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                  {/* First Name */}
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName" className="text-[#324c48]">
+                      First Name <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="firstName"
+                      name="firstName"
+                      value={formData.firstName}
+                      onChange={handleInputChange}
+                      placeholder="John"
+                      className={`border-[#324c48]/30 focus:border-[#D4A017] focus:ring-[#D4A017] ${
+                        validationErrors.firstName ? 'border-red-500' : ''
+                      }`}
+                    />
+                    {validationErrors.firstName && (
+                      <p className="text-red-500 text-sm mt-1">{validationErrors.firstName}</p>
+                    )}
+                  </div>
+
+                  {/* Last Name */}
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName" className="text-[#324c48]">
+                      Last Name <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="lastName"
+                      name="lastName"
+                      value={formData.lastName}
+                      onChange={handleInputChange}
+                      placeholder="Doe"
+                      className={`border-[#324c48]/30 focus:border-[#D4A017] focus:ring-[#D4A017] ${
+                        validationErrors.lastName ? 'border-red-500' : ''
+                      }`}
+                    />
+                    {validationErrors.lastName && (
+                      <p className="text-red-500 text-sm mt-1">{validationErrors.lastName}</p>
+                    )}
+                  </div>
+
+                  {/* Phone */}
+                  <div className="space-y-2">
+                    <Label htmlFor="phone" className="text-[#324c48]">
+                      Phone Number <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="phone"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handlePhoneChange}
+                      placeholder="(555) 555-5555"
+                      className={`border-[#324c48]/30 focus:border-[#D4A017] focus:ring-[#D4A017] ${
+                        validationErrors.phone ? 'border-red-500' : ''
+                      }`}
+                    />
+                    {validationErrors.phone && (
+                      <p className="text-red-500 text-sm mt-1">{validationErrors.phone}</p>
+                    )}
+                  </div>
+
+                  {/* Buyer Type */}
+                  <div className="space-y-2">
+                    <Label htmlFor="buyerType" className="text-[#324c48]">
+                      Buyer Type <span className="text-red-500">*</span>
+                    </Label>
+                    <Select
+                      value={formData.buyerType}
+                      onValueChange={handleBuyerTypeChange}
+                    >
+                      <SelectTrigger 
+                        className={`border-[#324c48]/30 focus:border-[#D4A017] focus:ring-[#D4A017] ${
+                          validationErrors.buyerType ? 'border-red-500' : ''
+                        }`}
+                      >
+                        <SelectValue placeholder="Select buyer type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="CashBuyer">Cash Buyer</SelectItem>
+                        <SelectItem value="Builder">Builder</SelectItem>
+                        <SelectItem value="Developer">Developer</SelectItem>
+                        <SelectItem value="Realtor">Realtor</SelectItem>
+                        <SelectItem value="Investor">Investor</SelectItem>
+                        <SelectItem value="Wholesaler">Wholesaler</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {validationErrors.buyerType && (
+                      <p className="text-red-500 text-sm mt-1">{validationErrors.buyerType}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="pt-4">
+                  <Button
+                    type="submit"
+                    className="w-full bg-[#D4A017] hover:bg-[#D4A017]/90 text-white font-medium py-3 text-lg"
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <span className="flex items-center justify-center">
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Processing...
+                      </span>
+                    ) : (
+                      "Complete VIP Registration"
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+            <CardFooter className="border-t pt-6 pb-4 text-sm text-[#324c48]/80 text-center">
+              By submitting this form, you agree to receive exclusive property alerts and special offers from Landivo.
+              <br />
+              We respect your privacy and will never share your information with third parties.
+            </CardFooter>
+          </Card>
+        )}
+      </div>
+    </div>
+  );
+}

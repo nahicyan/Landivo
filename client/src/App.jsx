@@ -30,6 +30,8 @@ import Sell from "./pages/Sell/Sell";
 import Qualify from "./pages/Qualify/Qualify";
 import QualificationsDashboard from "./components/QualificationsDashboard/QualificationsDashboard";
 import Subscription from "./pages/Subscription/Subscription"; // Import our new Subscription page
+import VipSignupForm from "./pages/Subscription/VipSignupForm"; // VIP signup form
+
 
 
 
@@ -65,6 +67,7 @@ function App() {
                   <Route path="/support" element={<Support />} />
                   <Route path="/about-us" element={<AboutUs />} />
                   <Route path="/subscription" element={<Subscription />} />
+                  <Route path="/vip-signup" element={<VipSignupForm />} />
                   <Route path="/CreateUservbtwP44jbX0FKKYUdHBGGCcYqenvNlYdH1Sj7K1dSD3kRo1Pib5VXQWb59a7CkQZ4DiQuu5r1t9I0uXVUbYjvvj4E1djRIkXRh40Uvbz2jSz6PZKguOjGhi7avF1b" element={<CreateUser />} />
                   <Route path="/DFW" element={<DFW/>} />
                   <Route path="/Austin" element={<Austin/>} />
