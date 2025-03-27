@@ -182,3 +182,13 @@ export const getUserById = async (id) => {
     handleRequestError(error, "Failed to fetch user details");
   }
 };
+
+// Get All Users
+export const getAllUsers = async () => {
+  try {
+    const response = await api.get('/user/all');
+    return response.data;
+  } catch (error) {
+    handleRequestError(error, "Failed to fetch users");
+  }
+};
