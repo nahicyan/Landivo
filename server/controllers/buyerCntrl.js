@@ -257,7 +257,7 @@ export const createVipBuyer = asyncHandler(async (req, res) => {
           firstName,
           lastName,
           buyerType,
-          isVIP: true,  // You'll need to add this field to your Prisma schema
+          isVIP: true, 
         },
       });
     } else {
@@ -269,7 +269,7 @@ export const createVipBuyer = asyncHandler(async (req, res) => {
           buyerType,
           firstName,
           lastName,
-          isVIP: true,  // You'll need to add this field to your Prisma schema
+          isVIP: true,  
         },
       });
     }
