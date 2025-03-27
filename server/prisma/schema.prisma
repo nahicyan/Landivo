@@ -137,7 +137,7 @@ model Buyer {
     buyerType  BuyerType
     firstName  String
     lastName   String
-    isVIP      Boolean  @default(false)  // Add this field
+    source     String?
     offers     Offer[] @relation("BuyerOffers")
     createdAt  DateTime @default(now())
     updatedAt  DateTime @updatedAt

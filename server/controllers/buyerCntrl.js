@@ -42,6 +42,7 @@ export const makeOffer = asyncHandler(async (req, res) => {
           buyerType,
           firstName,
           lastName,
+          source: "Property Offer",
         },
       });
     }
@@ -257,7 +258,7 @@ export const createVipBuyer = asyncHandler(async (req, res) => {
           firstName,
           lastName,
           buyerType,
-          isVIP: true, 
+          source: "VIP Buyers List", 
         },
       });
     } else {
@@ -269,7 +270,7 @@ export const createVipBuyer = asyncHandler(async (req, res) => {
           buyerType,
           firstName,
           lastName,
-          isVIP: true,  
+          source: "VIP Buyers List", 
         },
       });
     }

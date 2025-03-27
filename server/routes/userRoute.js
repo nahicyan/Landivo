@@ -8,6 +8,7 @@ import {
   googleLoginRedirect,
 } from "../controllers/userCntrl.js";
 import passport from "passport";
+import { getAllUsers } from "../controllers/userCntrl.js";
 
 const router = express.Router();
 
@@ -15,6 +16,7 @@ const router = express.Router();
 router.post("/register", createUser);
 router.post("/login", loginUser);
 router.post("/logout", logoutUser);
+router.get("/all", getAllUsers);
 
 // Google Authentication Routes
 router.get("/login/success", loginSuccess);  // Check if the user is logged in

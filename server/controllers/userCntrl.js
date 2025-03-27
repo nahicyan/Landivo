@@ -143,3 +143,28 @@ export const googleLoginRedirect = asyncHandler(async (req, res) => {
     res.status(500).json({ message: "Internal server error. Please try again." });
   }
 });
+
+// Display All User
+export const getAllUsers = asyncHandler(async (req, res) => {
+  try {
+    const users = await prisma.user.findMany({
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+    
+    // Remove sensitive information
+    const safeUsers = users.map(user => {
+      const { password, ...userWithoutPassword } = user;
+      return userWithoutPassword;
+    });
+    
+    res.status(200).send(safeUsers);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).send({ 
+      message: "An error occurred while fetching users", 
+      error: error.message 
+    });
+  }
+});

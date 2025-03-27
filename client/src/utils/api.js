@@ -171,3 +171,14 @@ export const createVipBuyer = async (buyerData) => {
     handleRequestError(error, "Failed to create VIP buyer");
   }
 };
+
+// 9. API Client Function for User Detail
+
+export const getUserById = async (id) => {
+  try {
+    const response = await api.get(`/user/${id}`);
+    return response.data;
+  } catch (error) {
+    handleRequestError(error, "Failed to fetch user details");
+  }
+};
