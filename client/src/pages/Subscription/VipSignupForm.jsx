@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { UserIcon, EnvelopeIcon, PhoneIcon, StarIcon } from '@heroicons/react/24/outline';
 import { parsePhoneNumber } from 'libphonenumber-js';
+import { createVipBuyer } from "@/utils/api";
+
 
 export default function VipSignupForm() {
   const navigate = useNavigate();
@@ -86,27 +88,10 @@ export default function VipSignupForm() {
     }
   };
 
-  // Format phone number as user types
-  const formatPhoneNumber = (input) => {
-    // Strip all non-numeric characters
-    const digitsOnly = input.replace(/\D/g, '');
-    
-    // Format the number as user types
-    let formattedNumber = '';
-    if (digitsOnly.length <= 3) {
-      formattedNumber = digitsOnly;
-    } else if (digitsOnly.length <= 6) {
-      formattedNumber = `(${digitsOnly.slice(0, 3)}) ${digitsOnly.slice(3)}`;
-    } else {
-      formattedNumber = `(${digitsOnly.slice(0, 3)}) ${digitsOnly.slice(3, 6)}-${digitsOnly.slice(6, 10)}`;
-    }
-    
-    return formattedNumber;
-  };
-
   // Handle phone number input specifically
   const handlePhoneChange = (e) => {
-    const formatted = formatPhoneNumber(e.target.value);
+    // Get the raw input value
+    const rawInput = e.target.value;
     
     // Clear validation error when user starts typing
     setValidationErrors(prev => ({
@@ -114,10 +99,33 @@ export default function VipSignupForm() {
       phone: ''
     }));
     
+    // Format the phone number
+    const formatted = formatPhoneNumber(rawInput);
+    
     setFormData(prev => ({
       ...prev,
       phone: formatted
     }));
+  };
+
+  // Format phone number as user types (matching implementation from Offer.jsx)
+  const formatPhoneNumber = (input) => {
+    // Strip all non-numeric characters
+    const digitsOnly = input.replace(/\D/g, '');
+    
+    // Format the number as user types
+    let formattedNumber = '';
+    if (digitsOnly.length === 0) {
+      return '';
+    } else if (digitsOnly.length <= 3) {
+      formattedNumber = digitsOnly;
+    } else if (digitsOnly.length <= 6) {
+      formattedNumber = `(${digitsOnly.slice(0, 3)}) ${digitsOnly.slice(3)}`;
+    } else {
+      formattedNumber = `(${digitsOnly.slice(0, 3)}) ${digitsOnly.slice(3, 6)}-${digitsOnly.slice(6, Math.min(10, digitsOnly.length))}`;
+    }
+    
+    return formattedNumber;
   };
 
   // Validate the entire form
@@ -166,19 +174,25 @@ export default function VipSignupForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    const result = await createVipBuyer({
+        email,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        phone: formData.phone,
+        buyerType: formData.buyerType
+      });
     
     // Validate form
     if (!validateForm()) {
       return;
     }
-
+  
     try {
       setLoading(true);
       
-      // In a real implementation, you would make an API call here
-      // to create the buyer record, for example:
-      /*
-      const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/buyer/create`, {
+      // Make an actual API call to create the VIP buyer
+      const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/buyer/createVipBuyer`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -191,20 +205,16 @@ export default function VipSignupForm() {
           buyerType: formData.buyerType
         }),
       });
-
+  
       if (!response.ok) {
-        throw new Error('Failed to create buyer profile');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to create VIP profile');
       }
       
       const data = await response.json();
-      */
-      
-      // For this example, we'll simulate a successful API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
       setSuccess(true);
     } catch (err) {
-      console.error("Error creating buyer profile:", err);
+      console.error("Error creating VIP buyer profile:", err);
       setError(err.message || 'An error occurred while creating your profile');
     } finally {
       setLoading(false);

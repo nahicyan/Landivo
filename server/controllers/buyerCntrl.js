@@ -230,3 +230,59 @@ export const getOffersByBuyer = asyncHandler(async (req, res) => {
     });
   }
 });
+
+export const createVipBuyer = asyncHandler(async (req, res) => {
+  const { email, phone, buyerType, firstName, lastName } = req.body;
+
+  if (!email || !phone || !buyerType || !firstName || !lastName) {
+    res.status(400).json({
+      message: "All fields are required."
+    });
+    return;
+  }
+
+  try {
+    // Check if buyer already exists
+    let buyer = await prisma.buyer.findFirst({
+      where: {
+        OR: [{ email: email.toLowerCase() }, { phone }],
+      },
+    });
+
+    if (buyer) {
+      // Update existing buyer with VIP status
+      buyer = await prisma.buyer.update({
+        where: { id: buyer.id },
+        data: {
+          firstName,
+          lastName,
+          buyerType,
+          isVIP: true,  // You'll need to add this field to your Prisma schema
+        },
+      });
+    } else {
+      // Create new buyer with VIP status
+      buyer = await prisma.buyer.create({
+        data: {
+          email: email.toLowerCase(),
+          phone,
+          buyerType,
+          firstName,
+          lastName,
+          isVIP: true,  // You'll need to add this field to your Prisma schema
+        },
+      });
+    }
+
+    res.status(201).json({
+      message: "VIP Buyer created successfully.",
+      buyer,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      message: "An error occurred while processing the request.",
+      error: err.message,
+    });
+  }
+});

@@ -52,20 +52,56 @@ export default function UserInfo({ surveyData, updateSurveyData, onSubmit, onBac
     updateSurveyData(name, value);
   };
 
+  // Phone number validation using libphonenumber-js
+  const validatePhone = (phoneInput) => {
+    try {
+      const phoneNumber = parsePhoneNumber(phoneInput, "US"); // "US" as default country code
+      return phoneNumber?.isValid();
+    } catch (error) {
+      console.error("Phone validation error:", error);
+      return false;
+    }
+  };
+
+  // Format phone number as user types
+  const handlePhoneChange = (e) => {
+    const formatted = formatPhoneNumber(e.target.value);
+    
+    setFormData(prev => ({
+      ...prev,
+      phone: formatted
+    }));
+    
+    // Also update the parent state
+    updateSurveyData("phone", formatted);
+  };
+
+  const formatPhoneNumber = (input) => {
+    // Strip all non-numeric characters
+    const digitsOnly = input.replace(/\D/g, '');
+    
+    // Format the number as user types
+    let formattedNumber = '';
+    if (digitsOnly.length === 0) {
+      return '';
+    } else if (digitsOnly.length <= 3) {
+      formattedNumber = digitsOnly;
+    } else if (digitsOnly.length <= 6) {
+      formattedNumber = `(${digitsOnly.slice(0, 3)}) ${digitsOnly.slice(3)}`;
+    } else {
+      formattedNumber = `(${digitsOnly.slice(0, 3)}) ${digitsOnly.slice(3, 6)}-${digitsOnly.slice(6, Math.min(10, digitsOnly.length))}`;
+    }
+    
+    return formattedNumber;
+  };
+
   // Handle form submission with validation
   const handleSubmit = (e) => {
     e.preventDefault();
     
     // Validate phone number
-    try {
-      const phoneNumber = parsePhoneNumber(formData.phone, "US");
-      if (!phoneNumber?.isValid()) {
-        setDialogMessage("Please enter a valid US phone number.");
-        setDialogOpen(true);
-        return;
-      }
-    } catch (error) {
-      setDialogMessage("Please enter a valid US phone number format.");
+    if (!validatePhone(formData.phone)) {
+      setDialogMessage("Please enter a valid US phone number.");
       setDialogOpen(true);
       return;
     }
@@ -90,7 +126,6 @@ export default function UserInfo({ surveyData, updateSurveyData, onSubmit, onBac
       lastName: "Last Name",
       email: "Email Address",
       phone: "Phone Number (US only)",
-      /* phoneHint: "Format: (555) 555-5555", */
       submit: "Submit Application",
       back: "Back",
       warning: "Warning",
@@ -102,7 +137,6 @@ export default function UserInfo({ surveyData, updateSurveyData, onSubmit, onBac
       lastName: "Apellido",
       email: "Correo electrónico",
       phone: "Número de teléfono (solo EE.UU.)",
-      /* phoneHint: "Formato: (555) 555-5555", */
       submit: "Enviar solicitud",
       back: "Atrás",
       warning: "Advertencia",
@@ -169,13 +203,12 @@ export default function UserInfo({ surveyData, updateSurveyData, onSubmit, onBac
                 id="phone"
                 name="phone"
                 type="tel"
-                /* placeholder="(555) 555-5555" */
+                placeholder="(555) 555-5555"
                 value={formData.phone}
-                onChange={handleChange}
+                onChange={handlePhoneChange}
                 className="border-[#c1d7d3] focus:border-[#324c48] focus:ring-[#324c48]"
                 required
               />
-              <p className="text-xs text-gray-500 mt-1">{t.phoneHint}</p>
             </div>
             
             <div className="flex justify-between mt-8">

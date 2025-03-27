@@ -76,6 +76,45 @@ export default function Offer({ propertyData }) {
     }
   };
 
+  // Phone number validation using libphonenumber-js
+  const validatePhone = (phoneInput) => {
+    try {
+      const phoneNumber = parsePhoneNumber(phoneInput, "US"); // "US" as default country code
+      if (!phoneNumber?.isValid()) {
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error("Phone validation error:", error);
+      return false;
+    }
+  };
+
+  // Format phone number as user types
+  const handlePhoneChange = (e) => {
+    const formatted = formatPhoneNumber(e.target.value);
+    setPhone(formatted);
+  };
+
+  const formatPhoneNumber = (input) => {
+    // Strip all non-numeric characters
+    const digitsOnly = input.replace(/\D/g, '');
+    
+    // Format the number as user types
+    let formattedNumber = '';
+    if (digitsOnly.length === 0) {
+      return '';
+    } else if (digitsOnly.length <= 3) {
+      formattedNumber = digitsOnly;
+    } else if (digitsOnly.length <= 6) {
+      formattedNumber = `(${digitsOnly.slice(0, 3)}) ${digitsOnly.slice(3)}`;
+    } else {
+      formattedNumber = `(${digitsOnly.slice(0, 3)}) ${digitsOnly.slice(3, 6)}-${digitsOnly.slice(6, Math.min(10, digitsOnly.length))}`;
+    }
+    
+    return formattedNumber;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -88,15 +127,7 @@ export default function Offer({ propertyData }) {
     }
     
     // === Phone Validation with libphonenumber-js ===
-    try {
-      const phoneNumber = parsePhoneNumber(phone, "US"); // "US" or your default country code
-      if (!phoneNumber?.isValid()) {
-        setDialogMessage("Invalid phone number. Please enter a valid number.");
-        setDialogType("warning");
-        setDialogOpen(true);
-        return;
-      }
-    } catch (error) {
+    if (!validatePhone(phone)) {
       setDialogMessage("Invalid phone number. Please enter a valid number.");
       setDialogType("warning");
       setDialogOpen(true);
@@ -211,7 +242,7 @@ export default function Offer({ propertyData }) {
                 type="text"
                 placeholder="(555) 555-5555"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={handlePhoneChange}
                 required
               />
             </div>

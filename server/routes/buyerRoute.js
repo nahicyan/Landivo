@@ -2,7 +2,7 @@ import express from "express";
 import { makeOffer } from "../controllers/buyerCntrl.js";
 import { getOffersByBuyer } from "../controllers/buyerCntrl.js";
 import { getOffersOnProperty } from "../controllers/buyerCntrl.js";
-
+import { createVipBuyer } from "../controllers/buyerCntrl.js";
 
 // import { getAllOffers, makeOffer } from "../controllers/buyerCntrl.js";
 
@@ -15,6 +15,8 @@ router.post("/makeOffer", makeOffer);
 // router.post("/allOffers", getAllOffers);
 router.get("/offers/property/:propertyId", getOffersOnProperty);
 router.get("/offers/buyer", getOffersByBuyer);
+// Route To Create A VIP Buyer
+router.post("/createVipBuyer", createVipBuyer);
 
 export { router as buyerRoute };
 

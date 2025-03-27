@@ -162,3 +162,12 @@ export const getAllQualifications = async (page = 1, limit = 10, filters = {}) =
     handleRequestError(error, "Failed to fetch qualifications");
   }
 };
+// Create A VIP Buyer
+export const createVipBuyer = async (buyerData) => {
+  try {
+    const response = await api.post('/buyer/createVipBuyer', buyerData);
+    return response.data;
+  } catch (error) {
+    handleRequestError(error, "Failed to create VIP buyer");
+  }
+};
