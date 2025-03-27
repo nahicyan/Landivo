@@ -14,11 +14,12 @@ model User {
   image            String?
   favResidenciesID String[]    @db.ObjectId
   ownedResidencies Residency[] @relation("Owner")
-
-  // Add a plain-text password field
   password         String?
-
   role             Role        @default(USER)
+  
+  // Add these timestamp fields
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
 }
 
 enum Role {
