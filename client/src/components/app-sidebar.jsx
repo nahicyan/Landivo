@@ -91,7 +91,7 @@ const data = {
       items: [
         { title: "VIP Buyer's List", url: "#" },
         { title: "Property Alert List", url: "#" },
-        { title: "Manage Buyers", url: "#" },
+        { title: "Manage Buyers", url: "admin/buyers" },
       ],
     },
   ],

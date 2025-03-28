@@ -33,7 +33,11 @@ import Subscription from "./pages/Subscription/Subscription"; // Import our new 
 import VipSignupForm from "./pages/Subscription/VipSignupForm"; // VIP signup form
 import AdminUsers from "./pages/AdminUsers/AdminUsers";
 import UserDetail from "./components/UserDetail/UserDetail";
-
+import AdminBuyers from "./pages/AdminBuyers/AdminBuyers";
+import BuyerDetail from "./components/BuyerDetail/BuyerDetail";
+import CreateBuyer from "./components/CreateBuyer/CreateBuyer";
+import EditBuyer from "./components/EditBuyer/EditBuyer";
+import BuyerOffers from "./components/BuyerOffers/BuyerOffers";
 
 
 
@@ -50,7 +54,7 @@ function App() {
         <ThemeProvider theme={theme}>
           <BrowserRouter>
             {/* Scroll to top on route change */}
-           <ScrollToTop />
+            <ScrollToTop />
             <Suspense fallback={<div>Loading...</div>}>
               <Routes>
                 <Route element={<Layout />}>
@@ -63,6 +67,11 @@ function App() {
                   </Route>
                   <Route path="/admin" element={<Admin />} />
                   <Route path="/admin/users" element={<AdminUsers />} />
+                  <Route path="/admin/buyers" element={<AdminBuyers />} />
+                  <Route path="/admin/buyers/create" element={<CreateBuyer />} />
+                  <Route path="/admin/buyers/:buyerId" element={<BuyerDetail />} />
+                  <Route path="/admin/buyers/:buyerId/edit" element={<EditBuyer />} />
+                  <Route path="/admin/buyers/:buyerId/offers" element={<BuyerOffers />} />
                   <Route path="/admin/qualifications" element={<QualificationsDashboard />} />
                   <Route path="/sell" element={<Sell />} />
                   <Route path="/financing" element={<Financing />} />
@@ -71,12 +80,13 @@ function App() {
                   <Route path="/subscription" element={<Subscription />} />
                   <Route path="/vip-signup" element={<VipSignupForm />} />
                   <Route path="/admin/users/:userId" element={<UserDetail />} />
+
                   <Route path="/CreateUservbtwP44jbX0FKKYUdHBGGCcYqenvNlYdH1Sj7K1dSD3kRo1Pib5VXQWb59a7CkQZ4DiQuu5r1t9I0uXVUbYjvvj4E1djRIkXRh40Uvbz2jSz6PZKguOjGhi7avF1b" element={<CreateUser />} />
-                  <Route path="/DFW" element={<DFW/>} />
-                  <Route path="/Austin" element={<Austin/>} />
-                  <Route path="/Houston" element={<Houston/>} />
-                  <Route path="/SanAntonio" element={<SanAntonio/>} />
-                  <Route path="/OtherLands" element={<OtherLands/>} />
+                  <Route path="/DFW" element={<DFW />} />
+                  <Route path="/Austin" element={<Austin />} />
+                  <Route path="/Houston" element={<Houston />} />
+                  <Route path="/SanAntonio" element={<SanAntonio />} />
+                  <Route path="/OtherLands" element={<OtherLands />} />
                   <Route path="/add-property" element={<AddProperty />} />
                   <Route path="/qualify" element={<Qualify />} />
                   <Route path="/edit-property/:propertyId" element={<EditProperty />} />

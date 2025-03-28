@@ -1,27 +1,33 @@
 import express from "express";
-import { makeOffer } from "../controllers/buyerCntrl.js";
-import { getOffersByBuyer } from "../controllers/buyerCntrl.js";
-import { getOffersOnProperty } from "../controllers/buyerCntrl.js";
-import { createVipBuyer } from "../controllers/buyerCntrl.js";
-
-// import { getAllOffers, makeOffer } from "../controllers/buyerCntrl.js";
+import { 
+  makeOffer, 
+  getOffersByBuyer, 
+  getOffersOnProperty, 
+  createVipBuyer,
+  createBuyer,
+  getAllBuyers,
+  getBuyerById,
+  updateBuyer,
+  deleteBuyer
+} from "../controllers/buyerCntrl.js";
 
 const router = express.Router();
 
-
-
 // Route to create or update an offer
 router.post("/makeOffer", makeOffer);
-// router.post("/allOffers", getAllOffers);
+
+// Route to get offers by property or buyer
 router.get("/offers/property/:propertyId", getOffersOnProperty);
 router.get("/offers/buyer", getOffersByBuyer);
-// Route To Create A VIP Buyer
+
+// Routes to create buyers
 router.post("/createVipBuyer", createVipBuyer);
+router.post("/create", createBuyer);
+
+// Buyer CRUD operations
+router.get("/all", getAllBuyers);
+router.get("/:id", getBuyerById);
+router.put("/update/:id", updateBuyer);
+router.delete("/delete/:id", deleteBuyer);
 
 export { router as buyerRoute };
-
-// router.post("/getOffersByBuyers", Property)
-
-
-
-

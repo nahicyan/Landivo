@@ -290,3 +290,259 @@ export const createVipBuyer = asyncHandler(async (req, res) => {
     });
   }
 });
+
+
+// Get all buyers
+export const getAllBuyers = asyncHandler(async (req, res) => {
+  try {
+    const buyers = await prisma.buyer.findMany({
+      include: {
+        offers: {
+          select: {
+            id: true,
+            propertyId: true,
+            offeredPrice: true,
+            timestamp: true
+          },
+          orderBy: {
+            timestamp: "desc"
+          }
+        }
+      },
+      orderBy: {
+        createdAt: "desc"
+      }
+    });
+    
+    res.status(200).json(buyers);
+  } catch (err) {
+    console.error("Error fetching buyers:", err);
+    res.status(500).json({
+      message: "An error occurred while fetching buyers",
+      error: err.message
+    });
+  }
+});
+
+// Get buyer by ID
+export const getBuyerById = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  
+  if (!id) {
+    return res.status(400).json({ message: "Buyer ID is required" });
+  }
+  
+  try {
+    const buyer = await prisma.buyer.findUnique({
+      where: { id },
+      include: {
+        offers: {
+          select: {
+            id: true,
+            propertyId: true,
+            offeredPrice: true,
+            timestamp: true
+          },
+          orderBy: {
+            timestamp: "desc"
+          }
+        }
+      }
+    });
+    
+    if (!buyer) {
+      return res.status(404).json({ message: "Buyer not found" });
+    }
+    
+    res.status(200).json(buyer);
+  } catch (err) {
+    console.error("Error fetching buyer:", err);
+    res.status(500).json({
+      message: "An error occurred while fetching the buyer",
+      error: err.message
+    });
+  }
+});
+
+// Update buyer
+export const updateBuyer = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const {
+    firstName,
+    lastName,
+    email,
+    phone,
+    buyerType,
+    source,
+    preferredAreas
+  } = req.body;
+  
+  if (!id) {
+    return res.status(400).json({ message: "Buyer ID is required" });
+  }
+  
+  try {
+    // Check if buyer exists
+    const existingBuyer = await prisma.buyer.findUnique({
+      where: { id }
+    });
+    
+    if (!existingBuyer) {
+      return res.status(404).json({ message: "Buyer not found" });
+    }
+    
+    // Check if email is changing and if it's already in use
+    if (email !== existingBuyer.email) {
+      const emailExists = await prisma.buyer.findUnique({
+        where: { email: email.toLowerCase() }
+      });
+      
+      if (emailExists && emailExists.id !== id) {
+        return res.status(400).json({ message: "Email already in use by another buyer" });
+      }
+    }
+    
+    // Check if phone is changing and if it's already in use
+    if (phone !== existingBuyer.phone) {
+      const phoneExists = await prisma.buyer.findUnique({
+        where: { phone }
+      });
+      
+      if (phoneExists && phoneExists.id !== id) {
+        return res.status(400).json({ message: "Phone number already in use by another buyer" });
+      }
+    }
+    
+    // Update the buyer
+    const updatedBuyer = await prisma.buyer.update({
+      where: { id },
+      data: {
+        firstName,
+        lastName,
+        email: email.toLowerCase(),
+        phone,
+        buyerType,
+        source,
+        preferredAreas: preferredAreas || []
+      },
+      include: {
+        offers: true
+      }
+    });
+    
+    res.status(200).json(updatedBuyer);
+  } catch (err) {
+    console.error("Error updating buyer:", err);
+    res.status(500).json({
+      message: "An error occurred while updating the buyer",
+      error: err.message
+    });
+  }
+});
+
+// Delete buyer
+export const deleteBuyer = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  
+  if (!id) {
+    return res.status(400).json({ message: "Buyer ID is required" });
+  }
+  
+  try {
+    // Check if buyer exists
+    const existingBuyer = await prisma.buyer.findUnique({
+      where: { id }
+    });
+    
+    if (!existingBuyer) {
+      return res.status(404).json({ message: "Buyer not found" });
+    }
+    
+    // First delete all offers from this buyer (due to foreign key constraint)
+    await prisma.offer.deleteMany({
+      where: { buyerId: id }
+    });
+    
+    // Then delete the buyer
+    const deletedBuyer = await prisma.buyer.delete({
+      where: { id }
+    });
+    
+    res.status(200).json({
+      message: "Buyer and associated offers deleted successfully",
+      buyer: deletedBuyer
+    });
+  } catch (err) {
+    console.error("Error deleting buyer:", err);
+    res.status(500).json({
+      message: "An error occurred while deleting the buyer",
+      error: err.message
+    });
+  }
+});
+
+
+// Create a regular buyer
+export const createBuyer = asyncHandler(async (req, res) => {
+  const {
+    email,
+    phone,
+    buyerType,
+    firstName,
+    lastName,
+    source,
+    preferredAreas
+  } = req.body;
+
+  // Validate required fields
+  if (!email || !phone || !buyerType || !firstName || !lastName) {
+    res.status(400).json({
+      message: "Email, phone, buyerType, firstName, and lastName are required."
+    });
+    return;
+  }
+
+  try {
+    // Check if buyer already exists with this email or phone
+    const existingBuyer = await prisma.buyer.findFirst({
+      where: {
+        OR: [
+          { email: email.toLowerCase() },
+          { phone }
+        ]
+      }
+    });
+
+    if (existingBuyer) {
+      res.status(409).json({
+        message: "A buyer with this email or phone number already exists.",
+        existingBuyer
+      });
+      return;
+    }
+    
+    // Create new buyer
+    const buyer = await prisma.buyer.create({
+      data: {
+        email: email.toLowerCase(),
+        phone,
+        buyerType,
+        firstName,
+        lastName,
+        source: source || "Manual Entry",
+        preferredAreas: preferredAreas || []
+      }
+    });
+
+    res.status(201).json({
+      message: "Buyer created successfully.",
+      buyer
+    });
+  } catch (err) {
+    console.error("Error creating buyer:", err);
+    res.status(500).json({
+      message: "An error occurred while processing the request.",
+      error: err.message
+    });
+  }
+});
