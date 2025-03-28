@@ -233,11 +233,12 @@ export const getOffersByBuyer = asyncHandler(async (req, res) => {
 });
 
 export const createVipBuyer = asyncHandler(async (req, res) => {
-  const { email, phone, buyerType, firstName, lastName } = req.body;
+  const { email, phone, buyerType, firstName, lastName, preferredAreas } = req.body;
 
-  if (!email || !phone || !buyerType || !firstName || !lastName) {
+  // Validate that preferredAreas exists and is an array
+  if (!email || !phone || !buyerType || !firstName || !lastName || !preferredAreas || !Array.isArray(preferredAreas)) {
     res.status(400).json({
-      message: "All fields are required."
+      message: "All fields are required including preferred areas."
     });
     return;
   }
@@ -251,18 +252,19 @@ export const createVipBuyer = asyncHandler(async (req, res) => {
     });
 
     if (buyer) {
-      // Update existing buyer with VIP status
+      // Update existing buyer with VIP status and preferred areas
       buyer = await prisma.buyer.update({
         where: { id: buyer.id },
         data: {
           firstName,
           lastName,
           buyerType,
+          preferredAreas, // Include preferred areas in update
           source: "VIP Buyers List", 
         },
       });
     } else {
-      // Create new buyer with VIP status
+      // Create new buyer with VIP status and preferred areas
       buyer = await prisma.buyer.create({
         data: {
           email: email.toLowerCase(),
@@ -270,6 +272,7 @@ export const createVipBuyer = asyncHandler(async (req, res) => {
           buyerType,
           firstName,
           lastName,
+          preferredAreas, // Include preferred areas in creation
           source: "VIP Buyers List", 
         },
       });

@@ -6,10 +6,19 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { UserIcon, EnvelopeIcon, PhoneIcon, StarIcon } from '@heroicons/react/24/outline';
+import { Checkbox } from '@/components/ui/checkbox';
+import { UserIcon, EnvelopeIcon, PhoneIcon, StarIcon, MapPinIcon } from '@heroicons/react/24/outline';
 import { parsePhoneNumber } from 'libphonenumber-js';
 import { createVipBuyer } from "@/utils/api";
 
+// Define the available areas
+const AREAS = [
+  { id: 'dfw', label: 'Dallas Fort Worth' },
+  { id: 'austin', label: 'Austin' },
+  { id: 'houston', label: 'Houston' },
+  { id: 'sanantonio', label: 'San Antonio' },
+  { id: 'others', label: 'Others' }
+];
 
 export default function VipSignupForm() {
   const navigate = useNavigate();
@@ -25,6 +34,7 @@ export default function VipSignupForm() {
     lastName: '',
     phone: '',
     buyerType: '',
+    preferredAreas: []
   });
 
   // Form validation errors
@@ -33,6 +43,7 @@ export default function VipSignupForm() {
     lastName: '',
     phone: '',
     buyerType: '',
+    preferredAreas: ''
   });
 
   // Get email from URL parameters on component mount
@@ -74,6 +85,31 @@ export default function VipSignupForm() {
       ...prev,
       buyerType: value
     }));
+  };
+
+  // Handle preferred areas selection (checkboxes)
+  const handleAreaChange = (areaId) => {
+    setValidationErrors(prev => ({
+      ...prev,
+      preferredAreas: ''
+    }));
+
+    setFormData(prev => {
+      // Check if the area is already selected
+      if (prev.preferredAreas.includes(areaId)) {
+        // If it is, remove it
+        return {
+          ...prev,
+          preferredAreas: prev.preferredAreas.filter(id => id !== areaId)
+        };
+      } else {
+        // If it's not, add it
+        return {
+          ...prev,
+          preferredAreas: [...prev.preferredAreas, areaId]
+        };
+      }
+    });
   };
 
   // Phone number validation based on Offer.jsx implementation
@@ -135,6 +171,7 @@ export default function VipSignupForm() {
       lastName: '',
       phone: '',
       buyerType: '',
+      preferredAreas: ''
     };
     
     let isValid = true;
@@ -166,6 +203,12 @@ export default function VipSignupForm() {
       isValid = false;
     }
 
+    // Preferred areas validation
+    if (formData.preferredAreas.length === 0) {
+      errors.preferredAreas = 'Please select at least one area';
+      isValid = false;
+    }
+
     setValidationErrors(errors);
     return isValid;
   };
@@ -175,14 +218,6 @@ export default function VipSignupForm() {
     e.preventDefault();
     setError('');
 
-    const result = await createVipBuyer({
-        email,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        phone: formData.phone,
-        buyerType: formData.buyerType
-      });
-    
     // Validate form
     if (!validateForm()) {
       return;
@@ -202,7 +237,8 @@ export default function VipSignupForm() {
           firstName: formData.firstName,
           lastName: formData.lastName,
           phone: formData.phone,
-          buyerType: formData.buyerType
+          buyerType: formData.buyerType,
+          preferredAreas: formData.preferredAreas // Add preferred areas to the payload
         }),
       });
   
@@ -361,6 +397,40 @@ export default function VipSignupForm() {
                       <p className="text-red-500 text-sm mt-1">{validationErrors.buyerType}</p>
                     )}
                   </div>
+                </div>
+
+                {/* Preferred Areas (Multi-select using checkboxes) */}
+                <div className="space-y-2">
+                  <div className="flex items-center">
+                    <MapPinIcon className="w-5 h-5 mr-2 text-[#324c48]" />
+                    <Label className="text-[#324c48] font-medium">
+                      Preferred Areas <span className="text-red-500">*</span>
+                    </Label>
+                  </div>
+                  <p className="text-sm text-[#324c48]/80 mb-2">Select all areas you're interested in</p>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {AREAS.map((area) => (
+                      <div key={area.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`area-${area.id}`}
+                          checked={formData.preferredAreas.includes(area.id)}
+                          onCheckedChange={() => handleAreaChange(area.id)}
+                          className="border-[#324c48]/50 data-[state=checked]:bg-[#D4A017] data-[state=checked]:border-[#D4A017]"
+                        />
+                        <Label
+                          htmlFor={`area-${area.id}`}
+                          className="text-[#324c48] cursor-pointer"
+                        >
+                          {area.label}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {validationErrors.preferredAreas && (
+                    <p className="text-red-500 text-sm mt-1">{validationErrors.preferredAreas}</p>
+                  )}
                 </div>
 
                 <div className="pt-4">

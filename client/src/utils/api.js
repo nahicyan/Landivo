@@ -192,3 +192,43 @@ export const getAllUsers = async () => {
     handleRequestError(error, "Failed to fetch users");
   }
 };
+
+// Get All Buyers
+export const getAllBuyers = async () => {
+  try {
+    const response = await api.get('/buyer/all');
+    return response.data;
+  } catch (error) {
+    handleRequestError(error, "Failed to fetch buyers");
+  }
+};
+
+// Get Buyer by ID
+export const getBuyerById = async (id) => {
+  try {
+    const response = await api.get(`/buyer/${id}`);
+    return response.data;
+  } catch (error) {
+    handleRequestError(error, "Failed to fetch buyer details");
+  }
+};
+
+// Update Buyer
+export const updateBuyer = async (id, buyerData) => {
+  try {
+    const response = await api.put(`/buyer/update/${id}`, buyerData);
+    return response.data;
+  } catch (error) {
+    handleRequestError(error, "Failed to update buyer");
+  }
+};
+
+// Delete Buyer
+export const deleteBuyer = async (id) => {
+  try {
+    const response = await api.delete(`/buyer/delete/${id}`);
+    return response.data;
+  } catch (error) {
+    handleRequestError(error, "Failed to delete buyer");
+  }
+};

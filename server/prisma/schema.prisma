@@ -139,6 +139,7 @@ model Buyer {
     firstName  String
     lastName   String
     source     String?
+    preferredAreas String[]
     offers     Offer[] @relation("BuyerOffers")
     createdAt  DateTime @default(now())
     updatedAt  DateTime @updatedAt
