@@ -63,6 +63,19 @@ import {
   RefreshCw
 } from "lucide-react";
 
+// Import API functions
+import { 
+  getBuyerLists,
+  getBuyerList,
+  createBuyerList,
+  updateBuyerList,
+  deleteBuyerList,
+  addBuyersToList,
+  removeBuyersFromList,
+  sendEmailToList,
+  getAllBuyers
+} from "@/utils/api";
+
 // Define the available areas
 const AREAS = [
   { id: 'DFW', label: 'Dallas Fort Worth' },
@@ -80,148 +93,6 @@ const BUYER_TYPES = [
   { id: 'Realtor', label: 'Realtor' },
   { id: 'Investor', label: 'Investor' },
   { id: 'Wholesaler', label: 'Wholesaler' }
-];
-
-// Sample data for buyer lists - in a real app, this would come from your API
-// This simulates saved buyer lists with their criteria
-const INITIAL_SAMPLE_LISTS = [
-  {
-    id: "list1",
-    name: "Austin Builders",
-    description: "All builders interested in Austin properties",
-    criteria: {
-      areas: ["Austin"],
-      buyerTypes: ["Builder"]
-    },
-    buyerCount: 24,
-    lastEmailDate: "2025-03-15T12:00:00Z"
-  },
-  {
-    id: "list2",
-    name: "DFW Investors",
-    description: "Investors looking for DFW opportunities",
-    criteria: {
-      areas: ["DFW"],
-      buyerTypes: ["Investor", "CashBuyer"]
-    },
-    buyerCount: 42,
-    lastEmailDate: "2025-03-20T15:30:00Z"
-  },
-  {
-    id: "list3",
-    name: "VIP Houston Buyers",
-    description: "VIP buyers interested in Houston properties",
-    criteria: {
-      areas: ["Houston"],
-      buyerTypes: ["CashBuyer", "Investor", "Developer"],
-      isVIP: true
-    },
-    buyerCount: 18,
-    lastEmailDate: "2025-03-10T09:15:00Z"
-  },
-  {
-    id: "list4",
-    name: "All Wholesalers",
-    description: "All wholesalers across all areas",
-    criteria: {
-      areas: [],
-      buyerTypes: ["Wholesaler"]
-    },
-    buyerCount: 31,
-    lastEmailDate: null
-  }
-];
-
-// Sample buyers data for demonstration
-const SAMPLE_BUYERS = [
-  {
-    id: "buyer1",
-    firstName: "John",
-    lastName: "Smith",
-    email: "john.smith@example.com",
-    phone: "(555) 123-4567",
-    buyerType: "Builder",
-    preferredAreas: ["Austin", "DFW"],
-    source: "VIP Buyers List",
-    createdAt: "2025-01-15T10:30:00Z"
-  },
-  {
-    id: "buyer2",
-    firstName: "Sarah",
-    lastName: "Johnson",
-    email: "sarahj@example.com",
-    phone: "(555) 987-6543",
-    buyerType: "Investor",
-    preferredAreas: ["DFW"],
-    source: "Property Offer",
-    createdAt: "2025-02-20T14:45:00Z"
-  },
-  {
-    id: "buyer3",
-    firstName: "Michael",
-    lastName: "Chen",
-    email: "mchen@example.com",
-    phone: "(555) 456-7890",
-    buyerType: "Builder",
-    preferredAreas: ["Austin"],
-    source: "VIP Buyers List",
-    createdAt: "2025-01-05T09:15:00Z"
-  },
-  {
-    id: "buyer4",
-    firstName: "Alex",
-    lastName: "Rodriguez",
-    email: "alex.r@example.com",
-    phone: "(555) 789-0123",
-    buyerType: "Developer",
-    preferredAreas: ["Houston", "San Antonio"],
-    source: "Manual Entry",
-    createdAt: "2025-03-10T16:20:00Z"
-  },
-  {
-    id: "buyer5",
-    firstName: "Jessica",
-    lastName: "Williams",
-    email: "jwilliams@example.com",
-    phone: "(555) 234-5678",
-    buyerType: "Wholesaler",
-    preferredAreas: ["DFW", "Austin"],
-    source: "Website",
-    createdAt: "2025-02-15T11:10:00Z"
-  },
-  {
-    id: "buyer6",
-    firstName: "David",
-    lastName: "Garcia",
-    email: "dgarcia@example.com",
-    phone: "(555) 555-7890",
-    buyerType: "CashBuyer",
-    preferredAreas: ["Austin"],
-    source: "VIP Buyers List",
-    createdAt: "2025-02-01T13:45:00Z"
-  },
-  {
-    id: "buyer7",
-    firstName: "Emma",
-    lastName: "Wilson",
-    email: "ewilson@example.com",
-    phone: "(555) 876-1234",
-    buyerType: "Builder",
-    preferredAreas: ["DFW", "Houston"],
-    source: "Manual Entry",
-    createdAt: "2025-01-20T09:30:00Z"
-  },
-  {
-    id: "buyer8",
-    firstName: "James",
-    lastName: "Thompson",
-    email: "jthompson@example.com",
-    phone: "(555) 333-4444",
-    buyerType: "Investor",
-    preferredAreas: ["San Antonio"],
-    source: "Property Offer",
-    createdAt: "2025-03-05T10:15:00Z"
-  }
 ];
 
 export default function BuyerLists() {
@@ -277,18 +148,21 @@ export default function BuyerLists() {
   const [memberSearchQuery, setMemberSearchQuery] = useState("");
   const [selectedMembers, setSelectedMembers] = useState([]);
 
-  // Initialize with sample data
+  // Fetch buyer lists and buyers from the API
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         
-        // In a real app, these would be API calls
-        // For now, we'll simulate with our sample data
-        setLists(INITIAL_SAMPLE_LISTS);
-        setFilteredLists(INITIAL_SAMPLE_LISTS);
-        setBuyers(SAMPLE_BUYERS);
-        setAvailableBuyers(SAMPLE_BUYERS);
+        // Fetch all buyer lists
+        const listsData = await getBuyerLists();
+        setLists(listsData);
+        setFilteredLists(listsData);
+        
+        // Fetch all buyers
+        const buyersData = await getAllBuyers();
+        setBuyers(buyersData);
+        setAvailableBuyers(buyersData);
         
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -312,8 +186,8 @@ export default function BuyerLists() {
     const filtered = lists.filter(list => 
       list.name.toLowerCase().includes(query) ||
       list.description?.toLowerCase().includes(query) ||
-      list.criteria.areas.some(area => area.toLowerCase().includes(query)) ||
-      list.criteria.buyerTypes.some(type => type.toLowerCase().includes(query))
+      (list.criteria?.areas && list.criteria.areas.some(area => area.toLowerCase().includes(query))) ||
+      (list.criteria?.buyerTypes && list.criteria.buyerTypes.some(type => type.toLowerCase().includes(query)))
     );
     
     setFilteredLists(filtered);
@@ -328,9 +202,9 @@ export default function BuyerLists() {
           name: list.name,
           description: list.description || "",
           criteria: { 
-            areas: list.criteria.areas || [],
-            buyerTypes: list.criteria.buyerTypes || [],
-            isVIP: list.criteria.isVIP || false
+            areas: list.criteria?.areas || [],
+            buyerTypes: list.criteria?.buyerTypes || [],
+            isVIP: list.criteria?.isVIP || false
           }
         });
       }
@@ -383,116 +257,137 @@ export default function BuyerLists() {
   }, [manageBuyersOpen, listMembers, memberSearchQuery]);
 
   // Handle creating a new list
-  const handleCreateList = () => {
+  const handleCreateList = async () => {
     // Validate form
     if (!listFormData.name.trim()) {
       toast.error("List name is required");
       return;
     }
     
-    // Generate a unique ID (in a real app, the server would do this)
-    const newListId = `list${Date.now()}`;
-    
-    // Create the new list
-    const newList = {
-      id: newListId,
-      name: listFormData.name,
-      description: listFormData.description,
-      criteria: listFormData.criteria,
-      buyerCount: 0, // This would be calculated on the server
-      lastEmailDate: null
-    };
-    
-    // Add to lists
-    setLists(prev => [...prev, newList]);
-    
-    // Reset form and close dialog
-    setListFormData({
-      name: "",
-      description: "",
-      criteria: {
-        areas: [],
-        buyerTypes: [],
-        isVIP: false
+    try {
+      // Create the new list via API
+      const newList = await createBuyerList({
+        name: listFormData.name,
+        description: listFormData.description,
+        criteria: listFormData.criteria,
+      });
+      
+      // Add to lists
+      setLists(prev => [...prev, newList.list]);
+      
+      // Reset form and close dialog
+      setListFormData({
+        name: "",
+        description: "",
+        criteria: {
+          areas: [],
+          buyerTypes: [],
+          isVIP: false
+        }
+      });
+      
+      setCreateListOpen(false);
+      toast.success("Buyer list created successfully!");
+      
+      // Process CSV data if available
+      if (csvData.length > 0) {
+        handleAddCsvBuyersToList(newList.list.id);
       }
-    });
-    
-    setCreateListOpen(false);
-    toast.success("Buyer list created successfully!");
-    
-    // Process CSV data if available
-    if (csvData.length > 0) {
-      handleAddCsvBuyersToList(newListId);
+    } catch (error) {
+      console.error("Error creating list:", error);
+      toast.error("Failed to create buyer list");
     }
   };
   
   // Handle updating an existing list
-  const handleUpdateList = () => {
+  const handleUpdateList = async () => {
     // Validate form
     if (!listFormData.name.trim()) {
       toast.error("List name is required");
       return;
     }
     
-    // Update the list
-    setLists(prev => 
-      prev.map(list => 
-        list.id === selectedList 
-          ? { 
-              ...list, 
-              name: listFormData.name, 
-              description: listFormData.description,
-              criteria: listFormData.criteria 
-            } 
-          : list
-      )
-    );
-    
-    // Reset form and close dialog
-    setEditListOpen(false);
-    toast.success("Buyer list updated successfully!");
-    
-    // Process CSV data if available
-    if (csvData.length > 0) {
-      handleAddCsvBuyersToList(selectedList);
+    try {
+      // Update the list via API
+      const updatedList = await updateBuyerList(selectedList, {
+        name: listFormData.name,
+        description: listFormData.description,
+        criteria: listFormData.criteria
+      });
+      
+      // Update lists state
+      setLists(prev => 
+        prev.map(list => 
+          list.id === selectedList 
+            ? updatedList.list
+            : list
+        )
+      );
+      
+      // Reset form and close dialog
+      setEditListOpen(false);
+      toast.success("Buyer list updated successfully!");
+      
+      // Process CSV data if available
+      if (csvData.length > 0) {
+        handleAddCsvBuyersToList(selectedList);
+      }
+    } catch (error) {
+      console.error("Error updating list:", error);
+      toast.error("Failed to update buyer list");
     }
   };
   
   // Handle deleting a list
-  const handleDeleteList = (listId) => {
-    // Remove the list
-    setLists(prev => prev.filter(list => list.id !== listId));
-    toast.success("Buyer list deleted successfully!");
+  const handleDeleteList = async (listId) => {
+    try {
+      // Delete the list via API
+      await deleteBuyerList(listId);
+      
+      // Remove the list from state
+      setLists(prev => prev.filter(list => list.id !== listId));
+      toast.success("Buyer list deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting list:", error);
+      toast.error("Failed to delete buyer list");
+    }
   };
   
   // Handle sending email to a list
-  const handleSendEmail = () => {
+  const handleSendEmail = async () => {
     // Validate email data
     if (!emailData.subject.trim() || !emailData.content.trim()) {
       toast.error("Email subject and content are required");
       return;
     }
     
-    const list = lists.find(l => l.id === selectedList);
-    if (!list) return;
-    
-    // In a real app, this would call your API to send emails
-    // For now, simulate success
-    
-    // Update last email date for the list
-    setLists(prev => 
-      prev.map(l => 
-        l.id === selectedList 
-          ? { ...l, lastEmailDate: new Date().toISOString() } 
-          : l
-      )
-    );
-    
-    // Reset form and close dialog
-    setEmailData({ subject: "", content: "" });
-    setEmailDialogOpen(false);
-    
-    toast.success(`Email sent to ${list.name} list (${list.buyerCount} buyers)!`);
+    try {
+      // Send email via API
+      await sendEmailToList(selectedList, {
+        subject: emailData.subject,
+        content: emailData.content,
+        includeUnsubscribed: false
+      });
+      
+      // Update last email date for the list
+      setLists(prev => 
+        prev.map(l => 
+          l.id === selectedList 
+            ? { ...l, lastEmailDate: new Date().toISOString() } 
+            : l
+        )
+      );
+      
+      // Reset form and close dialog
+      setEmailData({ subject: "", content: "" });
+      setEmailDialogOpen(false);
+      
+      const list = lists.find(l => l.id === selectedList);
+      toast.success(`Email sent to ${list.name} list (${list.buyerCount} buyers)!`);
+    } catch (error) {
+      console.error("Error sending email:", error);
+      toast.error("Failed to send email to list");
+    }
   };
   
   // Handle selecting/deselecting a buyer
@@ -518,72 +413,84 @@ export default function BuyerLists() {
   };
   
   // Handle adding selected buyers to the list
-  const handleAddBuyersToList = () => {
+  const handleAddBuyersToList = async () => {
     if (selectedBuyers.length === 0) {
       toast.error("No buyers selected");
       return;
     }
     
-    // Find the selected list
-    const list = lists.find(l => l.id === selectedList);
-    if (!list) return;
-    
-    // Update buyer count
-    setLists(prev => 
-      prev.map(l => 
-        l.id === selectedList 
-          ? { ...l, buyerCount: l.buyerCount + selectedBuyers.length } 
-          : l
-      )
-    );
-    
-    // In a real app, you would call the API to update the list
-    
-    // Show success message
-    toast.success(`${selectedBuyers.length} buyers added to ${list.name} list!`);
-    
-    // Reset selected buyers and close dialog
-    setSelectedBuyers([]);
-    setAddBuyersOpen(false);
+    try {
+      // Add buyers to list via API
+      await addBuyersToList(selectedList, selectedBuyers);
+      
+      // Find the selected list
+      const list = lists.find(l => l.id === selectedList);
+      if (!list) return;
+      
+      // Update buyer count
+      setLists(prev => 
+        prev.map(l => 
+          l.id === selectedList 
+            ? { ...l, buyerCount: l.buyerCount + selectedBuyers.length } 
+            : l
+        )
+      );
+      
+      // Show success message
+      toast.success(`${selectedBuyers.length} buyers added to ${list.name} list!`);
+      
+      // Reset selected buyers and close dialog
+      setSelectedBuyers([]);
+      setAddBuyersOpen(false);
+    } catch (error) {
+      console.error("Error adding buyers to list:", error);
+      toast.error("Failed to add buyers to list");
+    }
   };
   
   // Handle removing selected members from the list
-  const handleRemoveMembersFromList = () => {
+  const handleRemoveMembersFromList = async () => {
     if (selectedMembers.length === 0) {
       toast.error("No members selected");
       return;
     }
     
-    // Find the selected list
-    const list = lists.find(l => l.id === selectedList);
-    if (!list) return;
-    
-    // Update buyer count
-    setLists(prev => 
-      prev.map(l => 
-        l.id === selectedList 
-          ? { ...l, buyerCount: Math.max(0, l.buyerCount - selectedMembers.length) } 
-          : l
-      )
-    );
-    
-    // Remove members from list
-    setListMembers(prev => 
-      prev.filter(member => !selectedMembers.includes(member.id))
-    );
-    
-    // In a real app, you would call the API to update the list
-    
-    // Show success message
-    toast.success(`${selectedMembers.length} buyers removed from ${list.name} list!`);
-    
-    // Reset selected members
-    setSelectedMembers([]);
-    
-    // Update filtered members
-    setFilteredMembers(prev => 
-      prev.filter(member => !selectedMembers.includes(member.id))
-    );
+    try {
+      // Remove members from list via API
+      await removeBuyersFromList(selectedList, selectedMembers);
+      
+      // Find the selected list
+      const list = lists.find(l => l.id === selectedList);
+      if (!list) return;
+      
+      // Update buyer count
+      setLists(prev => 
+        prev.map(l => 
+          l.id === selectedList 
+            ? { ...l, buyerCount: Math.max(0, l.buyerCount - selectedMembers.length) } 
+            : l
+        )
+      );
+      
+      // Remove members from list
+      setListMembers(prev => 
+        prev.filter(member => !selectedMembers.includes(member.id))
+      );
+      
+      // Show success message
+      toast.success(`${selectedMembers.length} buyers removed from ${list.name} list!`);
+      
+      // Reset selected members
+      setSelectedMembers([]);
+      
+      // Update filtered members
+      setFilteredMembers(prev => 
+        prev.filter(member => !selectedMembers.includes(member.id))
+      );
+    } catch (error) {
+      console.error("Error removing members from list:", error);
+      toast.error("Failed to remove members from list");
+    }
   };
   
   // Handle form input changes
@@ -663,30 +570,28 @@ export default function BuyerLists() {
   };
   
   // Open manage members dialog for a list
-  const handleManageMembers = (listId) => {
+  const handleManageMembers = async (listId) => {
     setSelectedList(listId);
     setSelectedMembers([]);
     setMemberSearchQuery("");
     
-    // In a real app, you would fetch the list members from the API
-    // For now, we'll simulate with random buyers from our sample data
-    const list = lists.find(l => l.id === listId);
-    if (!list) return;
-    
-    // Simulate fetching list members
-    const randomMembers = [];
-    const memberCount = Math.min(list.buyerCount, buyers.length);
-    
-    // Shuffle buyers array and take the first 'memberCount' elements
-    const shuffledBuyers = [...buyers].sort(() => 0.5 - Math.random());
-    for (let i = 0; i < memberCount; i++) {
-      randomMembers.push(shuffledBuyers[i]);
+    try {
+      // Fetch the list with its members from the API
+      const listData = await getBuyerList(listId);
+      
+      if (listData && listData.buyers) {
+        setListMembers(listData.buyers);
+        setFilteredMembers(listData.buyers);
+      } else {
+        setListMembers([]);
+        setFilteredMembers([]);
+      }
+      
+      setManageBuyersOpen(true);
+    } catch (error) {
+      console.error("Error fetching list members:", error);
+      toast.error("Failed to load list members");
     }
-    
-    setListMembers(randomMembers);
-    setFilteredMembers(randomMembers);
-    
-    setManageBuyersOpen(true);
   };
   
   // Handle CSV file selection
@@ -744,46 +649,53 @@ export default function BuyerLists() {
   };
   
   // Add CSV buyers to list
-  const handleAddCsvBuyersToList = (listId) => {
+  const handleAddCsvBuyersToList = async (listId) => {
     if (csvData.length === 0) return;
     
-    // Find the list
-    const list = lists.find(l => l.id === listId);
-    if (!list) return;
-    
-    // Convert CSV data to buyer objects
-    const newBuyers = csvData.map((row, index) => ({
-      id: `csv-buyer-${Date.now()}-${index}`,
-      firstName: row.firstName,
-      lastName: row.lastName,
-      email: row.email,
-      phone: row.phone,
-      buyerType: row.buyerType || importOptions.defaultBuyerType,
-      preferredAreas: row.preferredAreas ? row.preferredAreas.split(",").map(a => a.trim()) : [importOptions.defaultArea],
-      source: "CSV Import",
-      createdAt: new Date().toISOString()
-    }));
-    
-    // Add to buyers list
-    setBuyers(prev => [...prev, ...newBuyers]);
-    setAvailableBuyers(prev => [...prev, ...newBuyers]);
-    
-    // Update list buyer count
-    setLists(prev => 
-      prev.map(l => 
-        l.id === listId 
-          ? { ...l, buyerCount: l.buyerCount + newBuyers.length } 
-          : l
-      )
-    );
-    
-    // Show success message
-    toast.success(`${newBuyers.length} buyers imported and added to list!`);
-    
-    // Reset CSV data
-    setCsvFile(null);
-    setCsvData([]);
-    setCsvErrors([]);
+    try {
+      // Convert CSV data to buyer objects
+      const newBuyers = csvData.map((row, index) => ({
+        id: `csv-buyer-${Date.now()}-${index}`,
+        firstName: row.firstName,
+        lastName: row.lastName,
+        email: row.email,
+        phone: row.phone,
+        buyerType: row.buyerType || importOptions.defaultBuyerType,
+        preferredAreas: row.preferredAreas ? row.preferredAreas.split(",").map(a => a.trim()) : [importOptions.defaultArea],
+        source: "CSV Import"
+      }));
+      
+      // Create buyers and add them to the list
+      // In a real implementation, you'd have an API endpoint for batch creating buyers
+      // For now, we'll simulate by adding the buyers to our local state
+      setBuyers(prev => [...prev, ...newBuyers]);
+      setAvailableBuyers(prev => [...prev, ...newBuyers]);
+      
+      // After creating buyers, add them to the list
+      const buyerIds = newBuyers.map(buyer => buyer.id);
+      await addBuyersToList(listId, buyerIds);
+      
+      // Update list buyer count
+      setLists(prev => 
+        prev.map(l => 
+          l.id === listId 
+            ? { ...l, buyerCount: l.buyerCount + newBuyers.length } 
+            : l
+        )
+      );
+      
+      // Show success message
+      toast.success(`${newBuyers.length} buyers imported and added to list!`);
+      
+      // Reset CSV data
+      setCsvFile(null);
+      setCsvData([]);
+      setCsvErrors([]);
+      setCsvUploadOpen(false);
+    } catch (error) {
+      console.error("Error importing buyers:", error);
+      toast.error("Failed to import buyers");
+    }
   };
   
   // Open CSV upload dialog for creating/editing a list
@@ -792,11 +704,6 @@ export default function BuyerLists() {
     setCsvData([]);
     setCsvErrors([]);
     setCsvUploadOpen(true);
-  };
-  
-  // Get list details
-  const getListDetails = (listId) => {
-    return lists.find(l => l.id === listId) || {};
   };
 
   if (loading) {
@@ -873,7 +780,7 @@ export default function BuyerLists() {
                       </TableCell>
                       <TableCell>
                         <div className="space-y-1">
-                          {list.criteria.areas.length > 0 && (
+                          {list.criteria && list.criteria.areas && list.criteria.areas.length > 0 && (
                             <div className="flex flex-wrap gap-1">
                               {list.criteria.areas.map((area, idx) => (
                                 <Badge key={idx} variant="outline" className="bg-[#f0f5f4] text-xs">
@@ -882,7 +789,7 @@ export default function BuyerLists() {
                               ))}
                             </div>
                           )}
-                          {list.criteria.buyerTypes.length > 0 && (
+                          {list.criteria && list.criteria.buyerTypes && list.criteria.buyerTypes.length > 0 && (
                             <div className="flex flex-wrap gap-1">
                               {list.criteria.buyerTypes.map((type, idx) => (
                                 <Badge 
@@ -903,7 +810,7 @@ export default function BuyerLists() {
                               ))}
                             </div>
                           )}
-                          {list.criteria.isVIP && (
+                          {list.criteria && list.criteria.isVIP && (
                             <Badge className="bg-[#D4A017] text-white text-xs">VIP Only</Badge>
                           )}
                         </div>
@@ -1741,7 +1648,7 @@ export default function BuyerLists() {
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-wrap gap-1">
-                            {buyer.preferredAreas.map((area, idx) => (
+                            {buyer.preferredAreas && buyer.preferredAreas.map((area, idx) => (
                               <Badge key={idx} variant="outline" className="bg-[#f0f5f4] text-xs">
                                 {area}
                               </Badge>
@@ -1910,7 +1817,7 @@ export default function BuyerLists() {
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-wrap gap-1">
-                            {buyer.preferredAreas.map((area, idx) => (
+                            {buyer.preferredAreas && buyer.preferredAreas.map((area, idx) => (
                               <Badge key={idx} variant="outline" className="bg-[#f0f5f4] text-xs">
                                 {area}
                               </Badge>

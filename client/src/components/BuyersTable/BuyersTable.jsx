@@ -328,12 +328,12 @@ export default function BuyersTable() {
 
   return (
     <div className="max-w-screen-xl mx-auto p-4 sm:p-6">
-      <div className="mb-6">
+      {/* <div className="mb-6">
         <h1 className="text-2xl font-bold text-[#324c48] mb-2">Buyer List Manager</h1>
         <p className="text-gray-600">
           Manage your buyer list and send targeted emails based on their preferred areas
         </p>
-      </div>
+      </div> */}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">

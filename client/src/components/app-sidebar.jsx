@@ -81,7 +81,7 @@ const data = {
           title: "Create A New User",
           url: "https://landivo.com/CreateUservbtwP44jbX0FKKYUdHBGGCcYqenvNlYdH1Sj7K1dSD3kRo1Pib5VXQWb59a7CkQZ4DiQuu5r1t9I0uXVUbYjvvj4E1djRIkXRh40Uvbz2jSz6PZKguOjGhi7avF1b",
         },
-        { title: "Manage Users", url: "#" },
+        { title: "Manage Users", url: "admin/users" },
       ],
     },
     {
@@ -89,7 +89,7 @@ const data = {
       url: "#",
       icon: User, // Changed to User icon
       items: [
-        { title: "VIP Buyer's List", url: "#" },
+        { title: "VIP Buyer's List", url: "admin/buyer-lists" },
         { title: "Property Alert List", url: "#" },
         { title: "Manage Buyers", url: "admin/buyers" },
       ],
