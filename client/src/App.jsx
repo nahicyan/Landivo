@@ -38,6 +38,9 @@ import BuyerDetail from "./components/BuyerDetail/BuyerDetail";
 import CreateBuyer from "./components/CreateBuyer/CreateBuyer";
 import EditBuyer from "./components/EditBuyer/EditBuyer";
 import BuyerOffers from "./components/BuyerOffers/BuyerOffers";
+import BuyerLists from "./components/BuyerLists/BuyerLists";
+
+
 
 
 
@@ -72,6 +75,7 @@ function App() {
                   <Route path="/admin/buyers/:buyerId" element={<BuyerDetail />} />
                   <Route path="/admin/buyers/:buyerId/edit" element={<EditBuyer />} />
                   <Route path="/admin/buyers/:buyerId/offers" element={<BuyerOffers />} />
+                  <Route path="/admin/buyer-lists" element={<BuyerLists />} />
                   <Route path="/admin/qualifications" element={<QualificationsDashboard />} />
                   <Route path="/sell" element={<Sell />} />
                   <Route path="/financing" element={<Financing />} />
@@ -80,7 +84,6 @@ function App() {
                   <Route path="/subscription" element={<Subscription />} />
                   <Route path="/vip-signup" element={<VipSignupForm />} />
                   <Route path="/admin/users/:userId" element={<UserDetail />} />
-
                   <Route path="/CreateUservbtwP44jbX0FKKYUdHBGGCcYqenvNlYdH1Sj7K1dSD3kRo1Pib5VXQWb59a7CkQZ4DiQuu5r1t9I0uXVUbYjvvj4E1djRIkXRh40Uvbz2jSz6PZKguOjGhi7avF1b" element={<CreateUser />} />
                   <Route path="/DFW" element={<DFW />} />
                   <Route path="/Austin" element={<Austin />} />

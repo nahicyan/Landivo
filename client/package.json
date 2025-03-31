@@ -52,6 +52,7 @@
     "libphonenumber-js": "^1.11.20",
     "lodash": "^4.17.21",
     "lucide-react": "^0.474.0",
+    "papaparse": "^5.5.2",
     "quill-emoji": "^0.2.0",
     "react": "^18.2.0",
     "react-accessible-accordion": "^5.0.0",

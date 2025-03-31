@@ -12,6 +12,7 @@ import { residencyRoute } from "./routes/residencyRoute.js";
 import { buyerRoute } from "./routes/buyerRoute.js";
 import { sessionLogger, ensureAuthenticated } from "./middlewares/sessionMiddleware.js";
 import { qualificationRoute } from "./routes/qualificationRoute.js";
+import { buyerListRoute } from "./routes/buyerListRoute.js";
 
 const app = express();
 const PORT = process.env.PORT || 8200;
@@ -107,3 +108,6 @@ app.listen(PORT, () => {
   console.log("Uploads folder path:", path.join(__dirname, "uploads"));
   console.log(`Backend is running on port ${PORT}`);
 });
+
+
+app.use("/api/buyer-lists", buyerListRoute);

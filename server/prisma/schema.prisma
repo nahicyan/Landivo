@@ -204,3 +204,24 @@ model Qualification {
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
 }
+
+
+model BuyerList {
+  id           String     @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  description  String?
+  createdBy    String?    @db.ObjectId
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  lastEmailDate DateTime?
+  
+  // Criteria for automatic membership
+  criteria     Json?      // Stores areas, buyerTypes, isVIP, etc.
+  
+  // Manual members (buyers explicitly added to this list)
+  buyerIds     String[]   @db.ObjectId
+  
+  // Additional metadata
+  isDefault    Boolean    @default(false)
+  color        String?    // Optional color coding for the list
+}

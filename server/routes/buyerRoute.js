@@ -8,7 +8,12 @@ import {
   getAllBuyers,
   getBuyerById,
   updateBuyer,
-  deleteBuyer
+  deleteBuyer,
+  // New email-related endpoints
+  getBuyersByArea,
+  sendEmailToBuyers,
+  importBuyersFromCsv,
+  getBuyerStats
 } from "../controllers/buyerCntrl.js";
 
 const router = express.Router();
@@ -29,5 +34,11 @@ router.get("/all", getAllBuyers);
 router.get("/:id", getBuyerById);
 router.put("/update/:id", updateBuyer);
 router.delete("/delete/:id", deleteBuyer);
+
+// New buyer list management routes
+router.get("/byArea/:areaId", getBuyersByArea);
+router.post("/sendEmail", sendEmailToBuyers);
+router.post("/import", importBuyersFromCsv);
+router.get("/stats", getBuyerStats);
 
 export { router as buyerRoute };
