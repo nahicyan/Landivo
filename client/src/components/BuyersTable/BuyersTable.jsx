@@ -77,13 +77,13 @@ import {
   MailCheck
 } from "lucide-react";
 
-// Define the available areas
+// Define the available areas with both ID and lowercase value for matching
 const AREAS = [
-  { id: 'DFW', label: 'Dallas Fort Worth' },
-  { id: 'Austin', label: 'Austin' },
-  { id: 'Houston', label: 'Houston' },
-  { id: 'San Antonio', label: 'San Antonio' },
-  { id: 'Other Areas', label: 'Other Areas' }
+  { id: 'DFW', label: 'Dallas Fort Worth', value: 'dfw' },
+  { id: 'Austin', label: 'Austin', value: 'austin' },
+  { id: 'Houston', label: 'Houston', value: 'houston' },
+  { id: 'San Antonio', label: 'San Antonio', value: 'san antonio' },
+  { id: 'Other Areas', label: 'Other Areas', value: 'other areas' }
 ];
 
 export default function BuyersTable() {
@@ -139,11 +139,26 @@ export default function BuyersTable() {
       byType: {}
     };
 
-    // Count buyers by area
+    // Initialize area counts to zero
     AREAS.forEach(area => {
-      newStats.byArea[area.id] = buyersList.filter(
-        b => b.preferredAreas && b.preferredAreas.includes(area.id)
-      ).length;
+      newStats.byArea[area.id] = 0;
+    });
+
+    // Count buyers by area - fixed to properly match lowercase area values
+    buyersList.forEach(buyer => {
+      if (buyer.preferredAreas && Array.isArray(buyer.preferredAreas)) {
+        buyer.preferredAreas.forEach(area => {
+          // Find the area object that matches the lowercase area value
+          const areaObj = AREAS.find(a => 
+            a.value === area.toLowerCase() || 
+            a.id.toLowerCase() === area.toLowerCase()
+          );
+          
+          if (areaObj) {
+            newStats.byArea[areaObj.id]++;
+          }
+        });
+      }
     });
 
     // Count buyers by type
@@ -174,8 +189,11 @@ export default function BuyersTable() {
 
       // Apply area filter
       if (areaFilter !== "all") {
+        const areaValue = AREAS.find(a => a.id === areaFilter)?.value || areaFilter.toLowerCase();
         results = results.filter(buyer => 
-          buyer.preferredAreas && buyer.preferredAreas.includes(areaFilter)
+          buyer.preferredAreas && buyer.preferredAreas.some(area => 
+            area.toLowerCase() === areaValue
+          )
         );
       }
 
@@ -318,6 +336,16 @@ export default function BuyersTable() {
     }
   };
 
+  // Get buyers for a specific area with proper case-insensitive matching
+  const getBuyersForArea = (areaId) => {
+    const areaValue = AREAS.find(a => a.id === areaId)?.value || areaId.toLowerCase();
+    return buyers.filter(b => 
+      b.preferredAreas && b.preferredAreas.some(area => 
+        area.toLowerCase() === areaValue
+      )
+    );
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
@@ -328,13 +356,6 @@ export default function BuyersTable() {
 
   return (
     <div className="max-w-screen-xl mx-auto p-4 sm:p-6">
-      {/* <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[#324c48] mb-2">Buyer List Manager</h1>
-        <p className="text-gray-600">
-          Manage your buyer list and send targeted emails based on their preferred areas
-        </p>
-      </div> */}
-
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <Card>
@@ -781,9 +802,7 @@ export default function BuyersTable() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {AREAS.map(area => {
                   const areaCount = stats.byArea[area.id] || 0;
-                  const areaBuyers = buyers.filter(b => 
-                    b.preferredAreas && b.preferredAreas.includes(area.id)
-                  );
+                  const areaBuyers = getBuyersForArea(area.id);
                   
                   return (
                     <Card key={area.id} className="border border-[#324c48]/20">
@@ -832,9 +851,7 @@ export default function BuyersTable() {
                           className="w-full text-[#324c48]"
                           onClick={() => {
                             // Set area filter and open email dialog with only these buyers selected
-                            const buyersForArea = buyers.filter(b => 
-                              b.preferredAreas && b.preferredAreas.includes(area.id)
-                            );
+                            const buyersForArea = getBuyersForArea(area.id);
                             setSelectedBuyers(buyersForArea.map(b => b.id));
                             setEmailDialogOpen(true);
                           }}
