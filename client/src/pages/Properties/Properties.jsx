@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { PuffLoader } from "react-spinners";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import useProperties from "../../components/hooks/useProperties";
+import useProperties from "../../components/hooks/useProperties.js";
 import PropertyCard from "../../components/PropertyCard/PropertyCard";
 import Search from "@/components/Search/Search";
 

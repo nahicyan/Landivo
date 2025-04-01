@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { PuffLoader } from "react-spinners";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
-import useProperties from "@/components/hooks/useProperties";
+import useProperties from "../../components/hooks/useProperties.js";
 import PropertyCard from "@/components/PropertyCard/PropertyCard";
 import SearchArea from "@/components/SearchArea/SearchArea";
 import { Button } from "@/components/ui/button";

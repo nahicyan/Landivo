@@ -7,7 +7,7 @@ import { PuffLoader } from "react-spinners";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
 import PropertyCard from "../../components/PropertyCard/PropertyCard";
-import useProperties from "../../components/hooks/useProperties";
+import useProperties from "../../components/hooks/useProperties.js";
 
 // Simple variants for fade-up animation
 const fadeUp = {

@@ -40,12 +40,6 @@ import EditBuyer from "./components/EditBuyer/EditBuyer";
 import BuyerOffers from "./components/BuyerOffers/BuyerOffers";
 import BuyerLists from "./components/BuyerLists/BuyerLists";
 
-
-
-
-
-
-
 // Create the React Query client
 const queryClient = new QueryClient();
 

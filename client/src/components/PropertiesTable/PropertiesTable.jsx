@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { PuffLoader } from "react-spinners";
-import useProperties from "@/components/hooks/useProperties";
+import useProperties from "../../components/hooks/useProperties.js";
 import { columns } from "../DataTable/Columns";
 import { DataTable } from "../DataTable/DataTable";
 import { Input } from "@/components/ui/input";

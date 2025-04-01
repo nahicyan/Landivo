@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
 import PropertyCard from "@/components/PropertyCard/PropertyCard";
-import useProperties from "@/components/hooks/useProperties";
+import useProperties from "../../components/hooks/useProperties.js";
 
 export default function FinancingSlider() {
   const { data = [], isError, isLoading } = useProperties(); // Ensure data has a default value

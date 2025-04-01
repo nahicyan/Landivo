@@ -2,7 +2,11 @@ import { useState, useEffect, useCallback } from "react";
 import { getAllBuyers } from "@/utils/api";
 import { toast } from "react-toastify";
 
-export function useBuyers() {
+/**
+ * Custom hook for managing buyer data
+ * Handles fetching, filtering, and updating buyers
+ */
+export function useBuyer() {
   // State for buyers data
   const [buyers, setBuyers] = useState([]);
   const [availableBuyers, setAvailableBuyers] = useState([]);
@@ -47,10 +51,10 @@ export function useBuyers() {
     if (filters.search) {
       const query = filters.search.toLowerCase();
       results = results.filter(buyer => 
-        buyer.firstName?.toLowerCase().includes(query) ||
-        buyer.lastName?.toLowerCase().includes(query) ||
-        buyer.email?.toLowerCase().includes(query) ||
-        buyer.phone?.includes(query)
+        buyer.firstName.toLowerCase().includes(query) ||
+        buyer.lastName.toLowerCase().includes(query) ||
+        buyer.email.toLowerCase().includes(query) ||
+        buyer.phone.includes(query)
       );
     }
 
@@ -131,4 +135,4 @@ export function useBuyers() {
   };
 }
 
-export default useBuyers;
+export default useBuyer;

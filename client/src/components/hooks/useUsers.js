@@ -1,12 +1,10 @@
-import React from "react";
 import { useQuery } from "react-query";
-import { getAllProperties } from "../../utils/api";
+import { getAllUsers } from "../../utils/api";
 
-
-const useProperties = () => {
+const useUsers = () => {
   const { data, isLoading, isError, refetch } = useQuery(
-    "allProperties",
-    getAllProperties,
+    "allUsers",
+    getAllUsers,
     { refetchOnWindowFocus: false }
   );
 
@@ -18,4 +16,4 @@ const useProperties = () => {
   };
 };
 
-export default useProperties;
+export default useUsers;

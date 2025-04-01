@@ -13,7 +13,7 @@ import ImportCsvDialog from "./ImportCsvDialog";
 
 // Import custom hooks from the proper location
 import { useBuyerLists } from "@/components/hooks/useBuyerLists";
-import { useBuyers } from "@/components/hooks/useBuyers";
+import useBuyers from "@/components/hooks/useBuyers.js";
 
 export default function BuyerLists() {
   // State for dialogs and selected list
