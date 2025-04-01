@@ -1,14 +1,8 @@
 import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
 import { PuffLoader } from "react-spinners";
 
-// Import custom hooks
-import { useBuyerLists } from "./hooks/useBuyerLists";
-import { useBuyers } from "./hooks/useBuyers";
-
-// Import components
+// Import core components for buyer lists
 import BuyerListsTable from "./BuyerListsTable";
 import CreateListForm from "./CreateListForm";
 import EditListForm from "./EditListForm";
@@ -16,6 +10,10 @@ import EmailForm from "./EmailForm";
 import AddBuyersDialog from "./AddBuyersDialog";
 import ManageMembersDialog from "./ManageMembersDialog";
 import ImportCsvDialog from "./ImportCsvDialog";
+
+// Import custom hooks from the proper location
+import { useBuyerLists } from "@/components/hooks/useBuyerLists";
+import { useBuyers } from "@/components/hooks/useBuyers";
 
 export default function BuyerLists() {
   // State for dialogs and selected list
@@ -37,7 +35,7 @@ export default function BuyerLists() {
     updateList,
     deleteList,
     sendEmail,
-    addBuyersToList,
+    addBuyersToList: addBuyersToListFn,
     removeBuyersFromList,
     setListFilters,
   } = useBuyerLists();
@@ -46,7 +44,6 @@ export default function BuyerLists() {
     buyers,
     availableBuyers,
     loading: buyersLoading,
-    error: buyersError,
   } = useBuyers();
 
   // Handle search input changes
@@ -62,26 +59,45 @@ export default function BuyerLists() {
 
   // Handle opening the edit list dialog
   const handleEditList = (listId) => {
-    setSelectedList(listId);
+    const list = lists.find(l => l.id === listId);
+    setSelectedList(list);
     setEditListOpen(true);
   };
 
   // Handle opening the email dialog
   const handleEmailList = (listId) => {
-    setSelectedList(listId);
+    const list = lists.find(l => l.id === listId);
+    setSelectedList(list);
     setEmailDialogOpen(true);
   };
 
   // Handle opening the add buyers dialog
   const handleAddBuyers = (listId) => {
-    setSelectedList(listId);
+    const list = lists.find(l => l.id === listId);
+    setSelectedList(list);
     setAddBuyersOpen(true);
   };
 
   // Handle opening the manage members dialog
   const handleManageMembers = (listId) => {
-    setSelectedList(listId);
+    const list = lists.find(l => l.id === listId);
+    setSelectedList(list);
     setManageBuyersOpen(true);
+  };
+
+  // Handle CSV import
+  const handleImportCsv = () => {
+    setCsvUploadOpen(true);
+  };
+
+  // Handle adding buyers to a list
+  const handleAddBuyersToList = async (listId, buyerIds) => {
+    try {
+      await addBuyersToListFn(listId, buyerIds);
+      setAddBuyersOpen(false);
+    } catch (error) {
+      console.error("Error adding buyers to list:", error);
+    }
   };
 
   // Loading state
@@ -115,7 +131,6 @@ export default function BuyerLists() {
           onAddBuyers={handleAddBuyers}
           onManageMembers={handleManageMembers}
           onDeleteList={deleteList}
-          className="w-full"
         />
       </Card>
 
@@ -124,38 +139,38 @@ export default function BuyerLists() {
         open={createListOpen}
         onOpenChange={setCreateListOpen}
         onCreateList={createList}
-        onImportCsv={() => setCsvUploadOpen(true)}
+        onImportCsv={handleImportCsv}
       />
 
       <EditListForm
         open={editListOpen}
         onOpenChange={setEditListOpen}
-        selectedList={selectedList ? lists.find(l => l.id === selectedList) : null}
+        selectedList={selectedList}
         onUpdateList={updateList}
-        onImportCsv={() => setCsvUploadOpen(true)}
+        onImportCsv={handleImportCsv}
       />
 
       <EmailForm
         open={emailDialogOpen}
         onOpenChange={setEmailDialogOpen}
-        selectedList={selectedList ? lists.find(l => l.id === selectedList) : null}
-        onSendEmail={(emailData) => sendEmail(selectedList, emailData)}
+        selectedList={selectedList}
+        onSendEmail={(emailData) => sendEmail(selectedList?.id, emailData)}
       />
 
       <AddBuyersDialog
         open={addBuyersOpen}
         onOpenChange={setAddBuyersOpen}
-        selectedList={selectedList ? lists.find(l => l.id === selectedList) : null}
+        selectedList={selectedList}
         availableBuyers={availableBuyers}
-        onAddBuyers={(buyerIds) => addBuyersToList(selectedList, buyerIds)}
-        onImportCsv={() => setCsvUploadOpen(true)}
+        onAddBuyers={(buyerIds) => handleAddBuyersToList(selectedList?.id, buyerIds)}
+        onImportCsv={handleImportCsv}
       />
 
       <ManageMembersDialog
         open={manageBuyersOpen}
         onOpenChange={setManageBuyersOpen}
-        selectedList={selectedList ? lists.find(l => l.id === selectedList) : null}
-        onRemoveMembers={(buyerIds) => removeBuyersFromList(selectedList, buyerIds)}
+        selectedList={selectedList}
+        onRemoveMembers={(buyerIds) => removeBuyersFromList(selectedList?.id, buyerIds)}
         onAddBuyers={() => setAddBuyersOpen(true)}
       />
 
@@ -166,12 +181,9 @@ export default function BuyerLists() {
           // Handle CSV import based on context
           if (selectedList) {
             // Add to existing list
-            addBuyersToList(selectedList, csvData.map(buyer => buyer.id));
-          } else if (createListOpen) {
-            // For new list creation - store data to be used after list creation
-            // This would be handled in the createList flow
-            setCsvUploadOpen(false);
+            addBuyersToListFn(selectedList.id, csvData.map(buyer => buyer.id));
           }
+          setCsvUploadOpen(false);
         }}
       />
     </div>

@@ -1,4 +1,3 @@
-// hooks/useBuyerLists.js
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { 
@@ -7,8 +6,8 @@ import {
   createBuyerList, 
   updateBuyerList, 
   deleteBuyerList, 
-  addBuyersToList, 
-  removeBuyersFromList, 
+  addBuyersToList as addBuyersApi, 
+  removeBuyersFromList as removeBuyersApi, 
   sendEmailToList 
 } from "@/utils/api";
 
@@ -111,7 +110,7 @@ export function useBuyerLists() {
   // Add buyers to a list
   const addBuyersToList = async (listId, buyerIds) => {
     try {
-      await addBuyersToList(listId, buyerIds);
+      await addBuyersApi(listId, buyerIds);
       
       // Update the buyer count in the list
       setLists(prev => 
@@ -119,7 +118,7 @@ export function useBuyerLists() {
           if (list.id === listId) {
             return { 
               ...list, 
-              buyerCount: list.buyerCount + buyerIds.length 
+              buyerCount: (list.buyerCount || 0) + buyerIds.length 
             };
           }
           return list;
@@ -137,7 +136,7 @@ export function useBuyerLists() {
   // Remove buyers from a list
   const removeBuyersFromList = async (listId, buyerIds) => {
     try {
-      await removeBuyersFromList(listId, buyerIds);
+      await removeBuyersApi(listId, buyerIds);
       
       // Update the buyer count in the list
       setLists(prev => 
@@ -145,7 +144,7 @@ export function useBuyerLists() {
           if (list.id === listId) {
             return { 
               ...list, 
-              buyerCount: Math.max(0, list.buyerCount - buyerIds.length)
+              buyerCount: Math.max(0, (list.buyerCount || 0) - buyerIds.length)
             };
           }
           return list;
@@ -211,175 +210,5 @@ export function useBuyerLists() {
     sendEmail,
     getListMembers,
     setListFilters: setFilters
-  };
-}
-
-// hooks/useBuyers.js
-import { useState, useEffect } from "react";
-import { toast } from "react-toastify";
-import { getAllBuyers } from "@/utils/api";
-
-export function useBuyers() {
-  const [buyers, setBuyers] = useState([]);
-  const [availableBuyers, setAvailableBuyers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  // Fetch all buyers
-  useEffect(() => {
-    const fetchBuyers = async () => {
-      try {
-        setLoading(true);
-        const data = await getAllBuyers();
-        setBuyers(data);
-        setAvailableBuyers(data);
-      } catch (err) {
-        console.error("Error fetching buyers:", err);
-        setError("Failed to load buyers");
-        toast.error("Failed to load buyers");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchBuyers();
-  }, []);
-
-  // Filter available buyers
-  const filterAvailableBuyers = (filters = {}) => {
-    let filtered = [...buyers];
-    
-    // Apply search filter
-    if (filters.search) {
-      const searchTerm = filters.search.toLowerCase();
-      filtered = filtered.filter(buyer => 
-        buyer.firstName.toLowerCase().includes(searchTerm) ||
-        buyer.lastName.toLowerCase().includes(searchTerm) ||
-        buyer.email.toLowerCase().includes(searchTerm) ||
-        buyer.phone.includes(searchTerm)
-      );
-    }
-    
-    // Apply type filter
-    if (filters.buyerType && filters.buyerType !== "all") {
-      filtered = filtered.filter(buyer => buyer.buyerType === filters.buyerType);
-    }
-    
-    setAvailableBuyers(filtered);
-  };
-
-  // Get buyers from a specific list
-  const getBuyersNotInList = (listBuyerIds) => {
-    return buyers.filter(buyer => !listBuyerIds.includes(buyer.id));
-  };
-
-  return {
-    buyers,
-    availableBuyers,
-    loading,
-    error,
-    filterAvailableBuyers,
-    getBuyersNotInList
-  };
-}
-
-// hooks/useCsvImport.js
-import { useState } from "react";
-import Papa from "papaparse";
-
-export function useCsvImport() {
-  const [csvFile, setCsvFile] = useState(null);
-  const [csvData, setCsvData] = useState([]);
-  const [csvErrors, setCsvErrors] = useState([]);
-  const [importOptions, setImportOptions] = useState({
-    skipFirstRow: true,
-    defaultBuyerType: "Investor",
-    defaultArea: "DFW"
-  });
-
-  // Parse CSV file
-  const parseCsvFile = (file) => {
-    if (!file) return;
-    
-    setCsvFile(file);
-    setCsvData([]);
-    setCsvErrors([]);
-    
-    Papa.parse(file, {
-      header: true,
-      skipEmptyLines: true,
-      complete: (results) => {
-        const errors = [];
-        
-        // Validate CSV format
-        const requiredColumns = ["firstName", "lastName", "email", "phone"];
-        const headers = results.meta.fields || [];
-        
-        const missingColumns = requiredColumns.filter(col => !headers.includes(col));
-        if (missingColumns.length > 0) {
-          errors.push(`Missing required columns: ${missingColumns.join(", ")}`);
-        }
-        
-        // Validate data
-        const validData = results.data.filter((row, index) => {
-          const rowErrors = [];
-          
-          // Check required fields
-          if (!row.firstName) rowErrors.push("Missing first name");
-          if (!row.lastName) rowErrors.push("Missing last name");
-          if (!row.email) rowErrors.push("Missing email");
-          if (!row.phone) rowErrors.push("Missing phone");
-          
-          // Add any row errors to the main errors array
-          if (rowErrors.length > 0) {
-            errors.push(`Row ${index + 2}: ${rowErrors.join(", ")}`);
-            return false;
-          }
-          
-          return true;
-        });
-        
-        // Update state
-        setCsvData(validData);
-        setCsvErrors(errors);
-      },
-      error: (error) => {
-        setCsvErrors([`Error parsing CSV: ${error.message}`]);
-      }
-    });
-  };
-
-  // Format CSV data to buyer objects
-  const formatCsvDataToBuyers = () => {
-    return csvData.map((row, index) => ({
-      id: `csv-buyer-${Date.now()}-${index}`,
-      firstName: row.firstName,
-      lastName: row.lastName,
-      email: row.email,
-      phone: row.phone,
-      buyerType: row.buyerType || importOptions.defaultBuyerType,
-      preferredAreas: row.preferredAreas ? 
-        row.preferredAreas.split(",").map(a => a.trim()) : 
-        [importOptions.defaultArea],
-      source: "CSV Import"
-    }));
-  };
-
-  // Reset CSV state
-  const resetCsvState = () => {
-    setCsvFile(null);
-    setCsvData([]);
-    setCsvErrors([]);
-  };
-
-  return {
-    csvFile,
-    csvData,
-    csvErrors,
-    importOptions,
-    parseCsvFile,
-    formatCsvDataToBuyers,
-    resetCsvState,
-    setImportOptions
   };
 }

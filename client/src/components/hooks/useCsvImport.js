@@ -180,5 +180,3 @@ export function useCsvImport() {
     setImportOptions
   };
 }
-
-export default useCsvImport;
