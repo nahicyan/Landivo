@@ -1,5 +1,6 @@
 import React from "react";
 import {
+  Card,
   CardContent,
   CardDescription,
   CardHeader,
@@ -42,11 +43,12 @@ import {
   Download, 
   MoreVertical, 
   FileUp,
+  Eye
 } from "lucide-react";
 import { format } from "date-fns";
 
 // Import constants
-import { AREAS } from "./buyerConstants";
+import { AREAS, BUYER_TYPES, getBuyerTypeClass } from "./buyerConstants";
 
 /**
  * BuyersTable component - Displays a table of buyers with filtering and actions
@@ -69,27 +71,29 @@ import { AREAS } from "./buyerConstants";
  * @param {Function} props.setEmailDialogOpen - Function to open email dialog
  * @param {Function} props.setBulkImportOpen - Function to open bulk import dialog
  * @param {Function} props.onExport - Function to export buyers
+ * @param {Function} props.onViewActivity - Function to view buyer activity
  * @param {Object} props.navigate - React Router navigate function
  */
 const BuyersTable = ({ 
-  filteredBuyers,
-  buyers,
-  selectedBuyers,
-  searchQuery,
-  setSearchQuery,
-  areaFilter,
-  setAreaFilter,
-  buyerTypeFilter,
-  setBuyerTypeFilter,
-  sourceFilter,
-  setSourceFilter,
-  onSelectBuyer,
-  onSelectAll,
-  onDeleteSelected,
-  setEmailDialogOpen,
-  setBulkImportOpen,
-  onExport,
-  navigate,
+  filteredBuyers = [],
+  buyers = [],
+  selectedBuyers = [],
+  searchQuery = "",
+  setSearchQuery = () => {},
+  areaFilter = "all",
+  setAreaFilter = () => {},
+  buyerTypeFilter = "all",
+  setBuyerTypeFilter = () => {},
+  sourceFilter = "all",
+  setSourceFilter = () => {},
+  onSelectBuyer = () => {},
+  onSelectAll = () => {},
+  onDeleteSelected = () => {},
+  setEmailDialogOpen = () => {},
+  setBulkImportOpen = () => {},
+  onExport = () => {},
+  onViewActivity = () => {},
+  navigate = () => {},
 }) => {
   return (
     <>
@@ -172,12 +176,9 @@ const BuyersTable = ({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="CashBuyer">Cash Buyer</SelectItem>
-                  <SelectItem value="Builder">Builder</SelectItem>
-                  <SelectItem value="Developer">Developer</SelectItem>
-                  <SelectItem value="Realtor">Realtor</SelectItem>
-                  <SelectItem value="Investor">Investor</SelectItem>
-                  <SelectItem value="Wholesaler">Wholesaler</SelectItem>
+                  {BUYER_TYPES.map(type => (
+                    <SelectItem key={type.id} value={type.id}>{type.label}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -197,6 +198,7 @@ const BuyersTable = ({
                 <SelectItem value="Manual Entry">Manual Entry</SelectItem>
                 <SelectItem value="Property Offer">Property Offer</SelectItem>
                 <SelectItem value="Website">Website</SelectItem>
+                <SelectItem value="CSV Import">CSV Import</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -238,7 +240,7 @@ const BuyersTable = ({
               <TableRow>
                 <TableHead className="w-12">
                   <Checkbox
-                    checked={(selectedBuyers?.length || 0) === (filteredBuyers?.length || 0) && (filteredBuyers?.length || 0) > 0}
+                    checked={selectedBuyers.length === filteredBuyers.length && filteredBuyers.length > 0}
                     onCheckedChange={onSelectAll}
                     aria-label="Select all"
                     className="translate-y-[2px]"
@@ -248,6 +250,7 @@ const BuyersTable = ({
                 <TableHead>Contact</TableHead>
                 <TableHead>Areas</TableHead>
                 <TableHead>Type</TableHead>
+                <TableHead>Activity</TableHead>
                 <TableHead>Source</TableHead>
                 <TableHead>Date Added</TableHead>
                 <TableHead className="w-12"></TableHead>
@@ -255,96 +258,129 @@ const BuyersTable = ({
             </TableHeader>
             <TableBody>
               {filteredBuyers.length > 0 ? (
-                filteredBuyers.map(buyer => (
-                  <TableRow key={buyer.id} className="group">
-                    <TableCell>
-                      <Checkbox
-                        checked={selectedBuyers?.includes(buyer.id) || false}
-                        onCheckedChange={() => onSelectBuyer(buyer.id)}
-                        aria-label={`Select ${buyer.firstName}`}
-                        className="translate-y-[2px]"
-                      />
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {buyer.firstName} {buyer.lastName}
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <div className="text-sm">{buyer.email}</div>
-                        <div className="text-xs text-gray-500">{buyer.phone}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {buyer.preferredAreas && buyer.preferredAreas.length > 0 ? (
-                          buyer.preferredAreas.map((area, idx) => (
-                            <Badge key={idx} variant="outline" className="bg-[#f0f5f4] text-xs">
-                              {area}
+                filteredBuyers.map(buyer => {
+                  // Generate an activity score between 0-100 based on the buyer's ID
+                  const activityScore = Math.floor(parseInt(buyer.id.substring(0, 8), 16) % 100);
+                  
+                  return (
+                    <TableRow key={buyer.id} className="group">
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedBuyers.includes(buyer.id)}
+                          onCheckedChange={() => onSelectBuyer(buyer.id)}
+                          aria-label={`Select ${buyer.firstName}`}
+                          className="translate-y-[2px]"
+                        />
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {buyer.firstName} {buyer.lastName}
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <div className="text-sm">{buyer.email}</div>
+                          <div className="text-xs text-gray-500">{buyer.phone}</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {buyer.preferredAreas && buyer.preferredAreas.length > 0 ? (
+                            buyer.preferredAreas.map((area, idx) => (
+                              <Badge key={idx} variant="outline" className="bg-[#f0f5f4] text-xs">
+                                {area}
+                              </Badge>
+                            ))
+                          ) : (
+                            <span className="text-gray-400 text-xs">None specified</span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge 
+                          variant="outline" 
+                          className={getBuyerTypeClass(buyer.buyerType)}
+                        >
+                          {buyer.buyerType}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col items-center">
+                          <div className="w-full h-2 bg-gray-200 rounded-full mb-1">
+                            <div 
+                              className={`h-full rounded-full ${
+                                activityScore >= 80 ? 'bg-green-500' :
+                                activityScore >= 50 ? 'bg-yellow-500' :
+                                'bg-red-500'
+                              }`}
+                              style={{ width: `${activityScore}%` }}
+                            />
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Badge 
+                              variant="outline" 
+                              className="text-xs cursor-pointer hover:bg-gray-100"
+                              onClick={() => onViewActivity && onViewActivity(buyer)}
+                            >
+                              <Eye className="h-3 w-3 mr-1" />
+                              View Activity
                             </Badge>
-                          ))
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {buyer.source === 'VIP Buyers List' ? (
+                          <Badge className="bg-[#D4A017] text-white">VIP</Badge>
                         ) : (
-                          <span className="text-gray-400 text-xs">None specified</span>
+                          <span className="text-sm">{buyer.source || 'Unknown'}</span>
                         )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge 
-                        variant="outline" 
-                        className={`
-                          ${buyer.buyerType === 'CashBuyer' ? 'bg-green-100 text-green-800' : ''}
-                          ${buyer.buyerType === 'Investor' ? 'bg-blue-100 text-blue-800' : ''}
-                          ${buyer.buyerType === 'Realtor' ? 'bg-purple-100 text-purple-800' : ''}
-                          ${buyer.buyerType === 'Builder' ? 'bg-orange-100 text-orange-800' : ''}
-                          ${buyer.buyerType === 'Developer' ? 'bg-yellow-100 text-yellow-800' : ''}
-                          ${buyer.buyerType === 'Wholesaler' ? 'bg-indigo-100 text-indigo-800' : ''}
-                        `}
-                      >
-                        {buyer.buyerType}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {buyer.source === 'VIP Buyers List' ? (
-                        <Badge className="bg-[#D4A017] text-white">VIP</Badge>
-                      ) : (
-                        <span className="text-sm">{buyer.source || 'Unknown'}</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {buyer.createdAt ? (
-                        format(new Date(buyer.createdAt), 'MMM d, yyyy')
-                      ) : (
-                        'N/A'
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => navigate(`/admin/buyers/${buyer.id}`)}>
-                            View Details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => navigate(`/admin/buyers/${buyer.id}/edit`)}>
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => navigate(`/admin/buyers/${buyer.id}/offers`)}>
-                            View Offers
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-red-600">
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))
+                      </TableCell>
+                      <TableCell>
+                        {buyer.createdAt ? (
+                          format(new Date(buyer.createdAt), 'MMM d, yyyy')
+                        ) : (
+                          'N/A'
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => navigate(`/admin/buyers/${buyer.id}`)}>
+                              View Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => navigate(`/admin/buyers/${buyer.id}/edit`)}>
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => navigate(`/admin/buyers/${buyer.id}/offers`)}>
+                              View Offers
+                            </DropdownMenuItem>
+                            {onViewActivity && (
+                              <DropdownMenuItem onClick={() => onViewActivity(buyer)}>
+                                View Activity
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              className="text-red-600"
+                              onClick={() => {
+                                onSelectBuyer(buyer.id);
+                                onDeleteSelected();
+                              }}
+                            >
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={8} className="h-24 text-center">
+                  <TableCell colSpan={9} className="h-24 text-center">
                     No buyers found matching your filters.
                   </TableCell>
                 </TableRow>

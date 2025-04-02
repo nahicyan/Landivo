@@ -1,5 +1,12 @@
 import React from 'react';
-import { Card } from "@/components/ui/card";
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardFooter, 
+  CardHeader, 
+  CardTitle 
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Mail } from "lucide-react";
@@ -25,13 +32,13 @@ const BuyerAreasTab = ({
 }) => {
   return (
     <Card>
-      <Card.Header>
-        <Card.Title>Buyers by Area</Card.Title>
-        <Card.Description>
+      <CardHeader>
+        <CardTitle>Buyers by Area</CardTitle>
+        <CardDescription>
           Browse buyers grouped by their preferred areas
-        </Card.Description>
-      </Card.Header>
-      <Card.Content>
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {areas.map(area => {
             const areaCount = stats.byArea[area.id] || 0;
@@ -39,13 +46,13 @@ const BuyerAreasTab = ({
             
             return (
               <Card key={area.id} className="border border-[#324c48]/20">
-                <Card.Header className="bg-[#f0f5f4] border-b">
+                <CardHeader className="bg-[#f0f5f4] border-b">
                   <div className="flex justify-between items-center">
-                    <Card.Title className="text-xl">{area.label}</Card.Title>
+                    <CardTitle className="text-xl">{area.label}</CardTitle>
                     <Badge className="bg-[#3f4f24]">{areaCount}</Badge>
                   </div>
-                </Card.Header>
-                <Card.Content className="p-4">
+                </CardHeader>
+                <CardContent className="p-4">
                   {areaCount > 0 ? (
                     <div className="space-y-4">
                       <div className="text-sm">
@@ -81,8 +88,8 @@ const BuyerAreasTab = ({
                       No buyers for this area
                     </div>
                   )}
-                </Card.Content>
-                <Card.Footer className="bg-gray-50 border-t py-2">
+                </CardContent>
+                <CardFooter className="bg-gray-50 border-t py-2">
                   <Button 
                     variant="ghost" 
                     className="w-full text-[#324c48]"
@@ -97,12 +104,12 @@ const BuyerAreasTab = ({
                     <Mail className="h-4 w-4 mr-2" />
                     Email {area.label} Buyers
                   </Button>
-                </Card.Footer>
+                </CardFooter>
               </Card>
             );
           })}
         </div>
-      </Card.Content>
+      </CardContent>
     </Card>
   );
 };

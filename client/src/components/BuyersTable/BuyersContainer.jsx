@@ -7,10 +7,17 @@ import { toast } from "react-toastify";
 import BuyersTable from "./BuyersTable";
 import BuyerStats from "./BuyerStats";
 import BuyerAreasTab from "./BuyerAreasTab";
-import { Card } from "@/components/ui/card";
+import { 
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent 
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { 
   Dialog,
   DialogContent,
@@ -21,13 +28,11 @@ import {
 } from "@/components/ui/dialog";
 import { 
   Sheet,
-  SheetClose,
   SheetContent,
   SheetDescription,
   SheetFooter,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -38,16 +43,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
-import { 
-  Search, 
-  Mail, 
-  Filter, 
-  PlusCircle, 
-  Trash2, 
-  Send, 
-  FileUp, 
-  Download 
-} from "lucide-react";
+import { Send, FileUp } from "lucide-react";
 
 // Import constants and utils
 import { AREAS, BUYER_TYPES } from "./buyerConstants";
@@ -75,6 +71,10 @@ const BuyersContainer = () => {
     byArea: {},
     byType: {}
   });
+  
+  // Store selected buyer for activity view
+  const [selectedBuyerForActivity, setSelectedBuyerForActivity] = useState(null);
+  const [activityDialogOpen, setActivityDialogOpen] = useState(false);
 
   // Fetch buyers data
   useEffect(() => {
@@ -325,6 +325,15 @@ const BuyersContainer = () => {
       )
     );
   };
+  
+  // Handle view activity
+  const handleViewActivity = (buyer) => {
+    setSelectedBuyerForActivity(buyer);
+    setActivityDialogOpen(true);
+    
+    // Just show a toast for now since we don't have the activity implementation
+    toast.info(`Viewing activity for ${buyer.firstName} ${buyer.lastName}`);
+  };
 
   if (loading) {
     return (
@@ -374,6 +383,7 @@ const BuyersContainer = () => {
               setEmailDialogOpen={setEmailDialogOpen}
               setBulkImportOpen={setBulkImportOpen}
               onExport={handleExport}
+              onViewActivity={handleViewActivity}
               navigate={navigate}
             />
           </Card>
@@ -394,20 +404,20 @@ const BuyersContainer = () => {
         {/* Analytics Tab */}
         <TabsContent value="analytics">
           <Card>
-            <Card.Header>
-              <Card.Title>Buyer List Analytics</Card.Title>
-              <Card.Description>
+            <CardHeader>
+              <CardTitle>Buyer List Analytics</CardTitle>
+              <CardDescription>
                 Insights into your buyer database
-              </Card.Description>
-            </Card.Header>
-            <Card.Content>
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Buyer Types Chart */}
                 <Card className="border border-[#324c48]/20">
-                  <Card.Header className="bg-[#f0f5f4] border-b">
-                    <Card.Title>Buyer Types</Card.Title>
-                  </Card.Header>
-                  <Card.Content className="p-4 min-h-[300px]">
+                  <CardHeader className="bg-[#f0f5f4] border-b">
+                    <CardTitle>Buyer Types</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4 min-h-[300px]">
                     {/* Here you'd normally have a chart */}
                     <div className="space-y-4">
                       {Object.entries(stats.byType).map(([type, count]) => (
@@ -423,22 +433,22 @@ const BuyersContainer = () => {
                                 type === 'Developer' ? 'bg-yellow-400' :
                                 'bg-indigo-400'
                               }`}
-                              style={{ width: `${(count / stats.total) * 100}%` }}
+                              style={{ width: `${stats.total ? (count / stats.total) * 100 : 0}%` }}
                             />
                           </div>
                           <div className="w-10 text-right ml-2">{count}</div>
                         </div>
                       ))}
                     </div>
-                  </Card.Content>
+                  </CardContent>
                 </Card>
                 
                 {/* Areas Distribution Chart */}
                 <Card className="border border-[#324c48]/20">
-                  <Card.Header className="bg-[#f0f5f4] border-b">
-                    <Card.Title>Area Distribution</Card.Title>
-                  </Card.Header>
-                  <Card.Content className="p-4 min-h-[300px]">
+                  <CardHeader className="bg-[#f0f5f4] border-b">
+                    <CardTitle>Area Distribution</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4 min-h-[300px]">
                     {/* Here you'd normally have a chart */}
                     <div className="space-y-4">
                       {AREAS.map(area => {
@@ -457,26 +467,61 @@ const BuyersContainer = () => {
                         );
                       })}
                     </div>
-                  </Card.Content>
+                  </CardContent>
                 </Card>
                 
                 {/* Growth Over Time */}
                 <Card className="border border-[#324c48]/20 md:col-span-2">
-                  <Card.Header className="bg-[#f0f5f4] border-b">
-                    <Card.Title>Buyer List Growth</Card.Title>
-                  </Card.Header>
-                  <Card.Content className="p-4 min-h-[300px] flex items-center justify-center">
+                  <CardHeader className="bg-[#f0f5f4] border-b">
+                    <CardTitle>Buyer List Growth</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4 min-h-[300px] flex items-center justify-center">
                     <div className="text-center text-gray-500">
                       <p>Historical growth data will be available soon</p>
                     </div>
-                  </Card.Content>
+                  </CardContent>
                 </Card>
               </div>
-            </Card.Content>
+            </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
 
+      {/* Activity Detail Dialog */}
+      <Dialog 
+        open={activityDialogOpen} 
+        onOpenChange={setActivityDialogOpen}
+      >
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Buyer Activity Dashboard</DialogTitle>
+            <DialogDescription>
+              {selectedBuyerForActivity && (
+                <>Detailed activity for {selectedBuyerForActivity.firstName} {selectedBuyerForActivity.lastName}</>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="max-h-[70vh] overflow-y-auto">
+            {selectedBuyerForActivity && (
+              <div className="text-center p-8">
+                <p>Activity tracking will be implemented in a future update.</p>
+                <p className="text-sm text-gray-500 mt-2">Check back soon for detailed user engagement analytics.</p>
+              </div>
+            )}
+          </div>
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setActivityDialogOpen(false)}
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
       {/* Email Dialog */}
       <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
         <DialogContent className="max-w-2xl">
@@ -527,7 +572,7 @@ const BuyersContainer = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
+      
       {/* Bulk Import Sheet */}
       <Sheet open={bulkImportOpen} onOpenChange={setBulkImportOpen}>
         <SheetContent side="right">
@@ -565,6 +610,7 @@ const BuyersContainer = () => {
           </div>
           <SheetFooter>
             <Button className="bg-[#324c48] text-white" onClick={handleBulkImport}>
+              <FileUp className="h-4 w-4 mr-2" />
               Import Buyers
             </Button>
           </SheetFooter>
