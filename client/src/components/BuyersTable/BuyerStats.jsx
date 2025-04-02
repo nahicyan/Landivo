@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Users, Tag, Mail, MailCheck } from "lucide-react";
 
 /**
@@ -9,7 +9,10 @@ import { Users, Tag, Mail, MailCheck } from "lucide-react";
  * @param {Object} props.stats - Statistics about buyers (total, vip, byArea, byType)
  * @param {number} props.selectedCount - Number of currently selected buyers
  */
-const BuyerStats = ({ stats, selectedCount }) => {
+const BuyerStats = ({ 
+  stats = { total: 0, vip: 0, byArea: {}, byType: {} }, 
+  selectedCount = 0 
+}) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
       <Card>

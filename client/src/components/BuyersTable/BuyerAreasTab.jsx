@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Mail } from "lucide-react";
@@ -16,12 +16,12 @@ import { Mail } from "lucide-react";
  * @param {Function} props.setEmailDialogOpen - Function to open email dialog
  */
 const BuyerAreasTab = ({ 
-  areas, 
-  stats, 
-  getBuyersForArea, 
-  setAreaFilter, 
-  setSelectedBuyers, 
-  setEmailDialogOpen 
+  areas = [], 
+  stats = { byArea: {} }, 
+  getBuyersForArea = () => [], 
+  setAreaFilter = () => {}, 
+  setSelectedBuyers = () => {}, 
+  setEmailDialogOpen = () => {} 
 }) => {
   return (
     <Card>
@@ -35,7 +35,7 @@ const BuyerAreasTab = ({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {areas.map(area => {
             const areaCount = stats.byArea[area.id] || 0;
-            const areaBuyers = getBuyersForArea(area.id);
+            const areaBuyers = getBuyersForArea(area.id) || [];
             
             return (
               <Card key={area.id} className="border border-[#324c48]/20">
@@ -88,7 +88,7 @@ const BuyerAreasTab = ({
                     className="w-full text-[#324c48]"
                     onClick={() => {
                       // Select all buyers for this area and open email dialog
-                      const buyersForArea = getBuyersForArea(area.id);
+                      const buyersForArea = getBuyersForArea(area.id) || [];
                       setSelectedBuyers(buyersForArea.map(b => b.id));
                       setEmailDialogOpen(true);
                     }}
