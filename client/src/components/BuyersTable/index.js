@@ -1,9 +1,8 @@
-/**
- * Main exports for the BuyersTable module
- */
+// Main exports for the BuyersTable module
+import BuyersContainer from './BuyersContainer';
 
-// Export the main container component as default
-export { default } from './BuyersContainer';
+// Re-export for easy imports
+export default BuyersContainer;
 
 // Export individual components for potential standalone use
 export { default as BuyersTable } from './BuyersTable';

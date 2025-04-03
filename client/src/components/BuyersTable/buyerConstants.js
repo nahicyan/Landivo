@@ -86,15 +86,25 @@ export const exportBuyersToCsv = (buyers) => {
 
   buyers.forEach(buyer => {
     const row = [
-      buyer.firstName,
-      buyer.lastName,
-      buyer.email,
-      buyer.phone,
-      buyer.buyerType,
-      (buyer.preferredAreas || []).join(", "),
-      buyer.source || "N/A"
+      buyer.firstName || '',
+      buyer.lastName || '',
+      buyer.email || '',
+      buyer.phone || '',
+      buyer.buyerType || '',
+      (buyer.preferredAreas && Array.isArray(buyer.preferredAreas)) ? buyer.preferredAreas.join(", ") : '',
+      buyer.source || "Unknown"
     ];
-    csvRows.push(row);
+    
+    // Escape any fields with commas or quotes
+    const escapedRow = row.map(field => {
+      if (typeof field !== 'string') return field;
+      if (field.includes(',') || field.includes('"') || field.includes('\n')) {
+        return `"${field.replace(/"/g, '""')}"`;
+      }
+      return field;
+    });
+    
+    csvRows.push(escapedRow);
   });
 
   return csvRows.map(row => row.join(",")).join("\n");

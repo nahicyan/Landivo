@@ -24,6 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import { 
   Dialog,
   DialogContent,
@@ -50,7 +51,7 @@ import {
 import { Send, FileUp } from "lucide-react";
 
 // Import constants and utils
-import { AREAS, BUYER_TYPES, BUYER_SOURCES, exportBuyersToCsv } from "./buyerConstants";
+import { AREAS, BUYER_TYPES, exportBuyersToCsv } from "./buyerConstants";
 import { generateActivityData, generateMockBuyers } from "./activityUtils";
 
 /**
@@ -86,7 +87,8 @@ const BuyersContainer = () => {
   const [importOptions, setImportOptions] = useState({
     skipFirstRow: true,
     defaultBuyerType: "Investor",
-    defaultArea: "DFW"
+    defaultArea: "DFW",
+    defaultSource: "CSV Import"
   });
   
   // Activity tracking
@@ -307,7 +309,7 @@ const BuyersContainer = () => {
   }, [buyers, selectedBuyers, emailData]);
 
   // Handle bulk import functionality
-  const handleBulkImport = useCallback((csvData) => {
+  const handleBulkImport = useCallback((e) => {
     // This would handle CSV processing
     // For now, just close the dialog and show a toast
     toast.info("Bulk import functionality will be implemented soon");
@@ -326,6 +328,7 @@ const BuyersContainer = () => {
       // For now, just remove them from the local state
       const updatedBuyers = buyers.filter(buyer => !selectedBuyers.includes(buyer.id));
       setBuyers(updatedBuyers);
+      setFilteredBuyers(prev => prev.filter(buyer => !selectedBuyers.includes(buyer.id)));
       setSelectedBuyers([]);
       updateStats(updatedBuyers);
       
