@@ -1,23 +1,29 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { getAllBuyers } from "@/utils/api";
 import { PuffLoader } from "react-spinners";
 import { toast } from "react-toastify";
 
+// Import sub-components
 import BuyersTable from "./BuyersTable";
 import BuyerStats from "./BuyerStats";
 import BuyerAreasTab from "./BuyerAreasTab";
-import { 
+import ActivityDetailView from "./ActivityDetailView";
+
+// Import UI components
+import {
   Card,
   CardHeader,
   CardTitle,
   CardDescription,
-  CardContent 
+  CardContent
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Dialog,
   DialogContent,
@@ -34,8 +40,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { 
   Select, 
   SelectContent, 
@@ -46,54 +50,94 @@ import {
 import { Send, FileUp } from "lucide-react";
 
 // Import constants and utils
-import { AREAS, BUYER_TYPES } from "./buyerConstants";
+import { AREAS, BUYER_TYPES, BUYER_SOURCES, exportBuyersToCsv } from "./buyerConstants";
+import { generateActivityData, generateMockBuyers } from "./activityUtils";
 
+/**
+ * Main container component for the Buyers section
+ */
 const BuyersContainer = () => {
   const navigate = useNavigate();
+  
+  // State for buyers data and filtering
   const [loading, setLoading] = useState(true);
   const [buyers, setBuyers] = useState([]);
   const [filteredBuyers, setFilteredBuyers] = useState([]);
   const [selectedBuyers, setSelectedBuyers] = useState([]);
+  
+  // Filter states
   const [searchQuery, setSearchQuery] = useState("");
   const [areaFilter, setAreaFilter] = useState("all");
   const [buyerTypeFilter, setBuyerTypeFilter] = useState("all");
   const [sourceFilter, setSourceFilter] = useState("all");
+  
+  // Dialog states
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
   const [bulkImportOpen, setBulkImportOpen] = useState(false);
+  const [activityDialogOpen, setActivityDialogOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  
+  // Form states
   const [emailData, setEmailData] = useState({
     subject: "",
     content: "",
     includeUnsubscribed: false
   });
+  const [importOptions, setImportOptions] = useState({
+    skipFirstRow: true,
+    defaultBuyerType: "Investor",
+    defaultArea: "DFW"
+  });
+  
+  // Activity tracking
+  const [selectedBuyerForActivity, setSelectedBuyerForActivity] = useState(null);
+  const [activityData, setActivityData] = useState(null);
+  
+  // Stats state
   const [stats, setStats] = useState({
     total: 0,
     vip: 0,
     byArea: {},
     byType: {}
   });
-  
-  // Store selected buyer for activity view
-  const [selectedBuyerForActivity, setSelectedBuyerForActivity] = useState(null);
-  const [activityDialogOpen, setActivityDialogOpen] = useState(false);
 
   // Fetch buyers data
   useEffect(() => {
     const fetchBuyers = async () => {
       try {
         setLoading(true);
+        console.log("Fetching buyers...");
         const data = await getAllBuyers();
-        // Initialize with empty arrays if data is undefined
-        const buyersData = data || [];
-        setBuyers(buyersData);
-        setFilteredBuyers(buyersData);
-        updateStats(buyersData);
+        console.log("Buyers data received:", data);
+        
+        // Ensure we have an array even if the API returns undefined
+        const buyersData = Array.isArray(data) ? data : [];
+        
+        // Debug buyers count
+        console.log(`Retrieved ${buyersData.length} buyers from API`);
+        
+        // If no buyers from API, use some mock data for demo purposes
+        if (buyersData.length === 0) {
+          const mockBuyers = generateMockBuyers();
+          console.log("Using mock buyers data");
+          setBuyers(mockBuyers);
+          setFilteredBuyers(mockBuyers);
+          updateStats(mockBuyers);
+        } else {
+          setBuyers(buyersData);
+          setFilteredBuyers(buyersData);
+          updateStats(buyersData);
+        }
       } catch (error) {
         console.error("Error fetching buyers:", error);
         toast.error("Failed to load buyers list");
-        // Initialize with empty arrays on error
-        setBuyers([]);
-        setFilteredBuyers([]);
-        updateStats([]);
+        
+        // Use mock data even on error for demo purposes
+        const mockBuyers = generateMockBuyers();
+        console.log("Using mock buyers data after error");
+        setBuyers(mockBuyers);
+        setFilteredBuyers(mockBuyers);
+        updateStats(mockBuyers);
       } finally {
         setLoading(false);
       }
@@ -103,10 +147,10 @@ const BuyersContainer = () => {
   }, []);
 
   // Update stats when buyers change
-  const updateStats = (buyersList = []) => {
+  const updateStats = useCallback((buyersList = []) => {
     const newStats = {
-      total: buyersList?.length || 0,
-      vip: (buyersList || []).filter(b => b?.source === "VIP Buyers List").length,
+      total: buyersList.length || 0,
+      vip: buyersList.filter(b => b?.source === "VIP Buyers List").length || 0,
       byArea: {},
       byType: {}
     };
@@ -116,12 +160,12 @@ const BuyersContainer = () => {
       newStats.byArea[area.id] = 0;
     });
 
-    // Count buyers by area - fixed to properly match lowercase area values
-    (buyersList || []).forEach(buyer => {
+    // Count buyers by area
+    buyersList.forEach(buyer => {
       if (buyer?.preferredAreas && Array.isArray(buyer.preferredAreas)) {
         buyer.preferredAreas.forEach(area => {
           if (area) {
-            // Find the area object that matches the lowercase area value
+            // Find matching area handling case insensitivity
             const areaObj = AREAS.find(a => 
               a.value === area.toLowerCase() || 
               a.id.toLowerCase() === area.toLowerCase()
@@ -136,20 +180,34 @@ const BuyersContainer = () => {
     });
 
     // Count buyers by type
-    (buyersList || []).forEach(buyer => {
+    buyersList.forEach(buyer => {
       if (buyer?.buyerType) {
         newStats.byType[buyer.buyerType] = (newStats.byType[buyer.buyerType] || 0) + 1;
       }
     });
 
     setStats(newStats);
-  };
+  }, []);
 
   // Apply filters to buyers
   useEffect(() => {
     const applyFilters = () => {
+      // Check if buyers array is valid
+      if (!Array.isArray(buyers) || buyers.length === 0) {
+        console.log("No buyers to filter");
+        setFilteredBuyers([]);
+        return;
+      }
+      
+      console.log(`Filtering ${buyers.length} buyers with criteria:`, {
+        searchQuery,
+        areaFilter,
+        buyerTypeFilter,
+        sourceFilter
+      });
+      
       // Make a defensive copy of buyers array
-      let results = buyers ? [...buyers] : [];
+      let results = [...buyers];
 
       // Apply search query filter
       if (searchQuery?.trim()) {
@@ -165,11 +223,12 @@ const BuyersContainer = () => {
       // Apply area filter
       if (areaFilter && areaFilter !== "all") {
         const areaValue = AREAS.find(a => a.id === areaFilter)?.value || areaFilter.toLowerCase();
-        results = results.filter(buyer => 
-          buyer?.preferredAreas && Array.isArray(buyer.preferredAreas) && buyer.preferredAreas.some(area => 
+        results = results.filter(buyer => {
+          if (!buyer?.preferredAreas || !Array.isArray(buyer.preferredAreas)) return false;
+          return buyer.preferredAreas.some(area => 
             area && area.toLowerCase() === areaValue
-          )
-        );
+          );
+        });
       }
 
       // Apply buyer type filter
@@ -182,6 +241,7 @@ const BuyersContainer = () => {
         results = results.filter(buyer => buyer?.source === sourceFilter);
       }
 
+      console.log(`Filter applied: ${results.length} buyers after filtering`);
       setFilteredBuyers(results);
     };
 
@@ -189,7 +249,7 @@ const BuyersContainer = () => {
   }, [buyers, searchQuery, areaFilter, buyerTypeFilter, sourceFilter]);
 
   // Handle buyer selection
-  const handleSelectBuyer = (buyerId) => {
+  const handleSelectBuyer = useCallback((buyerId) => {
     setSelectedBuyers(prev => {
       if (prev.includes(buyerId)) {
         return prev.filter(id => id !== buyerId);
@@ -197,32 +257,34 @@ const BuyersContainer = () => {
         return [...prev, buyerId];
       }
     });
-  };
+  }, []);
 
   // Handle select all buyers
-  const handleSelectAll = (event) => {
+  const handleSelectAll = useCallback((event) => {
     if (event) {
-      // Make sure filteredBuyers is defined and has length
-      if (filteredBuyers && filteredBuyers.length > 0) {
-        setSelectedBuyers(filteredBuyers.map(buyer => buyer.id));
-      }
+      setSelectedBuyers(filteredBuyers.map(buyer => buyer.id));
     } else {
       setSelectedBuyers([]);
     }
-  };
+  }, [filteredBuyers]);
 
   // Handle email content change
-  const handleEmailChange = (e) => {
-    const { name, value } = e.target;
+  const handleEmailChange = useCallback((e) => {
+    const { name, value, type, checked } = e.target;
     setEmailData(prev => ({
       ...prev,
-      [name]: value
+      [name]: type === 'checkbox' ? checked : value
     }));
-  };
+  }, []);
 
   // Handle sending email to selected buyers
-  const handleSendEmail = async () => {
+  const handleSendEmail = useCallback(async () => {
     try {
+      if (!emailData.subject.trim() || !emailData.content.trim()) {
+        toast.error("Email subject and content are required");
+        return;
+      }
+
       // Get the selected buyers' data
       const selectedBuyersData = buyers.filter(buyer => 
         selectedBuyers.includes(buyer.id)
@@ -242,18 +304,23 @@ const BuyersContainer = () => {
       console.error("Error sending emails:", error);
       toast.error("Failed to send emails");
     }
-  };
+  }, [buyers, selectedBuyers, emailData]);
 
   // Handle bulk import functionality
-  const handleBulkImport = (e) => {
-    // This would handle CSV upload and processing
+  const handleBulkImport = useCallback((csvData) => {
+    // This would handle CSV processing
     // For now, just close the dialog and show a toast
     toast.info("Bulk import functionality will be implemented soon");
     setBulkImportOpen(false);
-  };
+  }, []);
 
   // Handle buyer deletion
-  const handleDeleteSelected = async () => {
+  const handleDeleteSelected = useCallback(() => {
+    setDeleteConfirmOpen(true);
+  }, []);
+
+  // Confirm and process buyer deletion
+  const confirmDeleteSelected = useCallback(async () => {
     try {
       // In a real app, you would call an API to delete these buyers
       // For now, just remove them from the local state
@@ -261,15 +328,17 @@ const BuyersContainer = () => {
       setBuyers(updatedBuyers);
       setSelectedBuyers([]);
       updateStats(updatedBuyers);
-      toast.success(`${selectedBuyers.length} buyers deleted successfully`);
+      
+      toast.success(`${selectedBuyers.length} buyer${selectedBuyers.length !== 1 ? 's' : ''} deleted successfully`);
+      setDeleteConfirmOpen(false);
     } catch (error) {
       console.error("Error deleting buyers:", error);
       toast.error("Failed to delete selected buyers");
     }
-  };
+  }, [buyers, selectedBuyers, updateStats]);
 
   // Export buyer list
-  const handleExport = () => {
+  const handleExport = useCallback(() => {
     try {
       // Get the selected buyers (or all if none selected)
       const buyersToExport = selectedBuyers.length > 0
@@ -277,24 +346,7 @@ const BuyersContainer = () => {
         : filteredBuyers;
 
       // Convert to CSV
-      const headers = ["First Name", "Last Name", "Email", "Phone", "Buyer Type", "Preferred Areas", "Source"];
-      const csvRows = [headers];
-
-      buyersToExport.forEach(buyer => {
-        const row = [
-          buyer.firstName,
-          buyer.lastName,
-          buyer.email,
-          buyer.phone,
-          buyer.buyerType,
-          (buyer.preferredAreas || []).join(", "),
-          buyer.source || "N/A"
-        ];
-        csvRows.push(row);
-      });
-
-      // Create CSV content
-      const csvContent = csvRows.map(row => row.join(",")).join("\n");
+      const csvContent = exportBuyersToCsv(buyersToExport);
       
       // Create download link
       const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -312,11 +364,11 @@ const BuyersContainer = () => {
       console.error("Error exporting buyers:", error);
       toast.error("Failed to export buyers list");
     }
-  };
+  }, [buyers, filteredBuyers, selectedBuyers]);
 
   // Get buyers for a specific area with proper case-insensitive matching
-  const getBuyersForArea = (areaId) => {
-    if (!buyers || !Array.isArray(buyers) || !areaId) return [];
+  const getBuyersForArea = useCallback((areaId) => {
+    if (!areaId) return [];
     
     const areaValue = AREAS.find(a => a.id === areaId)?.value || areaId.toLowerCase();
     return buyers.filter(b => 
@@ -324,16 +376,18 @@ const BuyersContainer = () => {
         area && area.toLowerCase() === areaValue
       )
     );
-  };
+  }, [buyers]);
   
   // Handle view activity
-  const handleViewActivity = (buyer) => {
+  const handleViewActivity = useCallback((buyer) => {
     setSelectedBuyerForActivity(buyer);
-    setActivityDialogOpen(true);
     
-    // Just show a toast for now since we don't have the activity implementation
-    toast.info(`Viewing activity for ${buyer.firstName} ${buyer.lastName}`);
-  };
+    // Generate mock activity data for this buyer
+    const mockActivity = generateActivityData(buyer.id, buyer.firstName, buyer.lastName);
+    setActivityData(mockActivity);
+    
+    setActivityDialogOpen(true);
+  }, []);
 
   if (loading) {
     return (
@@ -418,7 +472,6 @@ const BuyersContainer = () => {
                     <CardTitle>Buyer Types</CardTitle>
                   </CardHeader>
                   <CardContent className="p-4 min-h-[300px]">
-                    {/* Here you'd normally have a chart */}
                     <div className="space-y-4">
                       {Object.entries(stats.byType).map(([type, count]) => (
                         <div key={type} className="flex items-center">
@@ -449,7 +502,6 @@ const BuyersContainer = () => {
                     <CardTitle>Area Distribution</CardTitle>
                   </CardHeader>
                   <CardContent className="p-4 min-h-[300px]">
-                    {/* Here you'd normally have a chart */}
                     <div className="space-y-4">
                       {AREAS.map(area => {
                         const count = stats.byArea[area.id] || 0;
@@ -503,11 +555,8 @@ const BuyersContainer = () => {
           </DialogHeader>
           
           <div className="max-h-[70vh] overflow-y-auto">
-            {selectedBuyerForActivity && (
-              <div className="text-center p-8">
-                <p>Activity tracking will be implemented in a future update.</p>
-                <p className="text-sm text-gray-500 mt-2">Check back soon for detailed user engagement analytics.</p>
-              </div>
+            {selectedBuyerForActivity && activityData && (
+              <ActivityDetailView activity={activityData} buyer={selectedBuyerForActivity} />
             )}
           </div>
           
@@ -554,6 +603,19 @@ const BuyersContainer = () => {
                 className="min-h-[200px] border-[#324c48]/30"
               />
             </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="includeUnsubscribed"
+                name="includeUnsubscribed"
+                checked={emailData.includeUnsubscribed}
+                onCheckedChange={(checked) => 
+                  setEmailData(prev => ({ ...prev, includeUnsubscribed: checked }))
+                }
+              />
+              <Label htmlFor="includeUnsubscribed" className="text-sm">
+                Include unsubscribed buyers (not recommended)
+              </Label>
+            </div>
           </div>
           <DialogFooter>
             <Button
@@ -565,9 +627,37 @@ const BuyersContainer = () => {
             <Button
               onClick={handleSendEmail}
               className="bg-[#324c48] text-white"
+              disabled={!emailData.subject.trim() || !emailData.content.trim()}
             >
               <Send className="h-4 w-4 mr-2" />
               Send Email
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete {selectedBuyers.length} selected buyer{selectedBuyers.length !== 1 ? 's' : ''}? 
+              This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteConfirmOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmDeleteSelected}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -594,17 +684,56 @@ const BuyersContainer = () => {
               
               <div className="space-y-2">
                 <Label htmlFor="defaultSource">Default Source</Label>
-                <Select defaultValue="Imported">
-                  <SelectTrigger>
+                <Select 
+                  value={importOptions.defaultSource || "CSV Import"}
+                  onValueChange={(value) => 
+                    setImportOptions(prev => ({ ...prev, defaultSource: value }))
+                  }
+                >
+                  <SelectTrigger id="defaultSource">
                     <SelectValue placeholder="Select source" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Imported">CSV Import</SelectItem>
+                    <SelectItem value="CSV Import">CSV Import</SelectItem>
                     <SelectItem value="VIP Buyers List">VIP Buyers List</SelectItem>
                     <SelectItem value="Manual Entry">Manual Entry</SelectItem>
                     <SelectItem value="Website">Website</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="defaultBuyerType">Default Buyer Type</Label>
+                <Select 
+                  value={importOptions.defaultBuyerType}
+                  onValueChange={(value) => 
+                    setImportOptions(prev => ({ ...prev, defaultBuyerType: value }))
+                  }
+                >
+                  <SelectTrigger id="defaultBuyerType">
+                    <SelectValue placeholder="Select buyer type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {BUYER_TYPES.map(type => (
+                      <SelectItem key={type.id} value={type.id}>
+                        {type.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="flex items-center space-x-2 mt-2">
+                <Checkbox
+                  id="skipFirstRow"
+                  checked={importOptions.skipFirstRow}
+                  onCheckedChange={(checked) => 
+                    setImportOptions(prev => ({ ...prev, skipFirstRow: checked }))
+                  }
+                />
+                <Label htmlFor="skipFirstRow">
+                  Skip first row (header row)
+                </Label>
               </div>
             </div>
           </div>

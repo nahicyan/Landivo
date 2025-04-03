@@ -1,11 +1,12 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
+import { format } from "date-fns";
+
 import {
-  Card,
-  CardContent,
-  CardDescription,
   CardHeader,
-  CardTitle,
+  CardContent,
   CardFooter,
+  CardTitle,
 } from "@/components/ui/card";
 import {
   Table,
@@ -23,7 +24,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -45,34 +45,12 @@ import {
   FileUp,
   Eye
 } from "lucide-react";
-import { format } from "date-fns";
 
 // Import constants
 import { AREAS, BUYER_TYPES, getBuyerTypeClass } from "./buyerConstants";
 
 /**
  * BuyersTable component - Displays a table of buyers with filtering and actions
- * 
- * @param {Object} props
- * @param {Array} props.filteredBuyers - Filtered list of buyers to display
- * @param {Array} props.buyers - Complete list of buyers (for counts)
- * @param {Array} props.selectedBuyers - Array of selected buyer IDs
- * @param {string} props.searchQuery - Current search query
- * @param {Function} props.setSearchQuery - Function to update search query
- * @param {string} props.areaFilter - Current area filter
- * @param {Function} props.setAreaFilter - Function to update area filter
- * @param {string} props.buyerTypeFilter - Current buyer type filter
- * @param {Function} props.setBuyerTypeFilter - Function to update buyer type filter
- * @param {string} props.sourceFilter - Current source filter
- * @param {Function} props.setSourceFilter - Function to update source filter
- * @param {Function} props.onSelectBuyer - Function to handle buyer selection
- * @param {Function} props.onSelectAll - Function to handle select all
- * @param {Function} props.onDeleteSelected - Function to delete selected buyers
- * @param {Function} props.setEmailDialogOpen - Function to open email dialog
- * @param {Function} props.setBulkImportOpen - Function to open bulk import dialog
- * @param {Function} props.onExport - Function to export buyers
- * @param {Function} props.onViewActivity - Function to view buyer activity
- * @param {Object} props.navigate - React Router navigate function
  */
 const BuyersTable = ({ 
   filteredBuyers = [],
@@ -93,8 +71,29 @@ const BuyersTable = ({
   setBulkImportOpen = () => {},
   onExport = () => {},
   onViewActivity = () => {},
-  navigate = () => {},
+  navigate = null,
 }) => {
+  // Use the passed navigate prop or get it from useNavigate
+  const routerNavigate = useNavigate();
+  const navigateTo = navigate || routerNavigate;
+
+  // Generate activity score from ID (for demo purposes)
+  const getActivityScore = (buyerId) => {
+    // Make sure we have a valid ID string
+    if (!buyerId || typeof buyerId !== 'string') {
+      return Math.floor(Math.random() * 100); // Fallback to random score
+    }
+    
+    try {
+      const idHash = buyerId.substring(0, 8);
+      const hash = parseInt(idHash, 16) || Math.floor(Math.random() * 1000);
+      return Math.floor(hash % 100);
+    } catch (error) {
+      console.warn("Error generating activity score:", error);
+      return Math.floor(Math.random() * 100); // Fallback to random score
+    }
+  };
+
   return (
     <>
       <CardHeader className="bg-[#f0f5f4] border-b">
@@ -106,7 +105,7 @@ const BuyersTable = ({
               size="sm"
               variant="outline"
               className="border-[#324c48] text-[#324c48]"
-              onClick={() => navigate("/admin/buyers/create")}
+              onClick={() => navigateTo("/admin/buyers/create")}
             >
               <PlusCircle className="h-4 w-4 mr-2" />
               Add Buyer
@@ -199,6 +198,7 @@ const BuyersTable = ({
                 <SelectItem value="Property Offer">Property Offer</SelectItem>
                 <SelectItem value="Website">Website</SelectItem>
                 <SelectItem value="CSV Import">CSV Import</SelectItem>
+                <SelectItem value="Referral">Referral</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -206,7 +206,7 @@ const BuyersTable = ({
         
         {/* Bulk Actions */}
         {selectedBuyers.length > 0 && (
-          <div className="p-3 bg-[#f0f5f4] border-b flex items-center justify-between">
+          <div className="p-3 bg-[#f0f5f4] border-b flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <span className="text-sm text-[#324c48]">
               {selectedBuyers.length} buyers selected
             </span>
@@ -259,8 +259,7 @@ const BuyersTable = ({
             <TableBody>
               {filteredBuyers.length > 0 ? (
                 filteredBuyers.map(buyer => {
-                  // Generate an activity score between 0-100 based on the buyer's ID
-                  const activityScore = Math.floor(parseInt(buyer.id.substring(0, 8), 16) % 100);
+                  const activityScore = getActivityScore(buyer.id);
                   
                   return (
                     <TableRow key={buyer.id} className="group">
@@ -283,7 +282,7 @@ const BuyersTable = ({
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
-                          {buyer.preferredAreas && buyer.preferredAreas.length > 0 ? (
+                          {buyer?.preferredAreas && Array.isArray(buyer.preferredAreas) && buyer.preferredAreas.length > 0 ? (
                             buyer.preferredAreas.map((area, idx) => (
                               <Badge key={idx} variant="outline" className="bg-[#f0f5f4] text-xs">
                                 {area}
@@ -299,7 +298,7 @@ const BuyersTable = ({
                           variant="outline" 
                           className={getBuyerTypeClass(buyer.buyerType)}
                         >
-                          {buyer.buyerType}
+                          {buyer.buyerType || 'Unknown'}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -318,7 +317,7 @@ const BuyersTable = ({
                             <Badge 
                               variant="outline" 
                               className="text-xs cursor-pointer hover:bg-gray-100"
-                              onClick={() => onViewActivity && onViewActivity(buyer)}
+                              onClick={() => onViewActivity(buyer)}
                             >
                               <Eye className="h-3 w-3 mr-1" />
                               View Activity
@@ -327,10 +326,10 @@ const BuyersTable = ({
                         </div>
                       </TableCell>
                       <TableCell>
-                        {buyer.source === 'VIP Buyers List' ? (
+                        {buyer?.source === 'VIP Buyers List' ? (
                           <Badge className="bg-[#D4A017] text-white">VIP</Badge>
                         ) : (
-                          <span className="text-sm">{buyer.source || 'Unknown'}</span>
+                          <span className="text-sm">{buyer?.source || 'Unknown'}</span>
                         )}
                       </TableCell>
                       <TableCell>
@@ -348,26 +347,24 @@ const BuyersTable = ({
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => navigate(`/admin/buyers/${buyer.id}`)}>
+                            <DropdownMenuItem onClick={() => navigateTo(`/admin/buyers/${buyer.id}`)}>
                               View Details
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => navigate(`/admin/buyers/${buyer.id}/edit`)}>
+                            <DropdownMenuItem onClick={() => navigateTo(`/admin/buyers/${buyer.id}/edit`)}>
                               Edit
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => navigate(`/admin/buyers/${buyer.id}/offers`)}>
+                            <DropdownMenuItem onClick={() => navigateTo(`/admin/buyers/${buyer.id}/offers`)}>
                               View Offers
                             </DropdownMenuItem>
-                            {onViewActivity && (
-                              <DropdownMenuItem onClick={() => onViewActivity(buyer)}>
-                                View Activity
-                              </DropdownMenuItem>
-                            )}
+                            <DropdownMenuItem onClick={() => onViewActivity(buyer)}>
+                              View Activity
+                            </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem 
                               className="text-red-600"
                               onClick={() => {
                                 onSelectBuyer(buyer.id);
-                                onDeleteSelected();
+                                setTimeout(() => onDeleteSelected(), 100);
                               }}
                             >
                               Delete
@@ -381,7 +378,9 @@ const BuyersTable = ({
               ) : (
                 <TableRow>
                   <TableCell colSpan={9} className="h-24 text-center">
-                    No buyers found matching your filters.
+                    {searchQuery || areaFilter !== "all" || buyerTypeFilter !== "all" || sourceFilter !== "all" 
+                      ? "No buyers found matching your filters." 
+                      : "No buyers found. Add your first buyer to get started!"}
                   </TableCell>
                 </TableRow>
               )}
@@ -397,7 +396,7 @@ const BuyersTable = ({
         <Button 
           variant="outline" 
           className="border-[#324c48] text-[#324c48]"
-          onClick={() => navigate("/admin/buyers/create")}
+          onClick={() => navigateTo("/admin/buyers/create")}
         >
           <PlusCircle className="h-4 w-4 mr-2" />
           Add New Buyer
