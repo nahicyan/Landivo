@@ -1,4 +1,4 @@
-import React, { Suspense } from "react";
+import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { ToastContainer } from "react-toastify";
@@ -6,6 +6,7 @@ import { ReactQueryDevtools } from "react-query/devtools";
 import { ThemeProvider } from "@mui/material/styles"; // Import MUI ThemeProvider
 import theme from "./theme"; // Our custom theme with colors
 import Layout from "./components/Layout/Layout"; // Your layout component
+import AdminLayout from "./components/Layout/AdminLayout"; // New Admin Layout component
 import Site from "./pages/Site"; // Home page
 import Properties from "./pages/Properties/Properties"; // Properties listing page
 import Property from "./pages/Property/Property"; // Property detail page
@@ -40,6 +41,9 @@ import EditBuyer from "./components/EditBuyer/EditBuyer";
 import BuyerOffers from "./components/BuyerOffers/BuyerOffers";
 import BuyerLists from "./components/BuyerLists/BuyerLists";
 
+// Import "react-toastify/dist/ReactToastify.css" for toast styling
+import "react-toastify/dist/ReactToastify.css";
+
 // Create the React Query client
 const queryClient = new QueryClient();
 
@@ -52,44 +56,48 @@ function App() {
           <BrowserRouter>
             {/* Scroll to top on route change */}
             <ScrollToTop />
-            <Suspense fallback={<div>Loading...</div>}>
-              <Routes>
-                <Route element={<Layout />}>
-                  <Route path="/" element={<Site />} />
-                  <Route path="/properties">
-                    <Route index element={<Properties />} />
-                    <Route path=":propertyId" element={<Property />} />
-                    <Route path=":propertyId/offers" element={<OfferTable />} />
-                    <Route path=":propertyId/qualify" element={<Qualify />} />
-                  </Route>
-                  <Route path="/admin" element={<Admin />} />
-                  <Route path="/admin/users" element={<AdminUsers />} />
-                  <Route path="/admin/buyers" element={<AdminBuyers />} />
-                  <Route path="/admin/buyers/create" element={<CreateBuyer />} />
-                  <Route path="/admin/buyers/:buyerId" element={<BuyerDetail />} />
-                  <Route path="/admin/buyers/:buyerId/edit" element={<EditBuyer />} />
-                  <Route path="/admin/buyers/:buyerId/offers" element={<BuyerOffers />} />
-                  <Route path="/admin/buyer-lists" element={<BuyerLists />} />
-                  <Route path="/admin/qualifications" element={<QualificationsDashboard />} />
-                  <Route path="/sell" element={<Sell />} />
-                  <Route path="/financing" element={<Financing />} />
-                  <Route path="/support" element={<Support />} />
-                  <Route path="/about-us" element={<AboutUs />} />
-                  <Route path="/subscription" element={<Subscription />} />
-                  <Route path="/vip-signup" element={<VipSignupForm />} />
-                  <Route path="/admin/users/:userId" element={<UserDetail />} />
-                  <Route path="/CreateUservbtwP44jbX0FKKYUdHBGGCcYqenvNlYdH1Sj7K1dSD3kRo1Pib5VXQWb59a7CkQZ4DiQuu5r1t9I0uXVUbYjvvj4E1djRIkXRh40Uvbz2jSz6PZKguOjGhi7avF1b" element={<CreateUser />} />
-                  <Route path="/DFW" element={<DFW />} />
-                  <Route path="/Austin" element={<Austin />} />
-                  <Route path="/Houston" element={<Houston />} />
-                  <Route path="/SanAntonio" element={<SanAntonio />} />
-                  <Route path="/OtherLands" element={<OtherLands />} />
-                  <Route path="/add-property" element={<AddProperty />} />
-                  <Route path="/qualify" element={<Qualify />} />
-                  <Route path="/edit-property/:propertyId" element={<EditProperty />} />
+            <Routes>
+              {/* Main site routes with standard layout */}
+              <Route element={<Layout />}>
+                <Route path="/" element={<Site />} />
+                <Route path="/properties">
+                  <Route index element={<Properties />} />
+                  <Route path=":propertyId" element={<Property />} />
+                  <Route path=":propertyId/offers" element={<OfferTable />} />
+                  <Route path=":propertyId/qualify" element={<Qualify />} />
                 </Route>
-              </Routes>
-            </Suspense>
+                <Route path="/sell" element={<Sell />} />
+                <Route path="/financing" element={<Financing />} />
+                <Route path="/support" element={<Support />} />
+                <Route path="/about-us" element={<AboutUs />} />
+                <Route path="/subscription" element={<Subscription />} />
+                <Route path="/vip-signup" element={<VipSignupForm />} />
+                <Route path="/DFW" element={<DFW />} />
+                <Route path="/Austin" element={<Austin />} />
+                <Route path="/Houston" element={<Houston />} />
+                <Route path="/SanAntonio" element={<SanAntonio />} />
+                <Route path="/OtherLands" element={<OtherLands />} />
+                <Route path="/qualify" element={<Qualify />} />
+                <Route path="/CreateUservbtwP44jbX0FKKYUdHBGGCcYqenvNlYdH1Sj7K1dSD3kRo1Pib5VXQWb59a7CkQZ4DiQuu5r1t9I0uXVUbYjvvj4E1djRIkXRh40Uvbz2jSz6PZKguOjGhi7avF1b" element={<CreateUser />} />
+              </Route>
+
+              {/* Admin routes with AdminLayout */}
+              <Route element={<AdminLayout />}>
+                <Route path="/admin" element={<Admin />} />
+                <Route path="/admin/users" element={<AdminUsers />} />
+                <Route path="/admin/users/:userId" element={<UserDetail />} />
+                <Route path="/admin/buyers" element={<AdminBuyers />} />
+                <Route path="/admin/buyers/create" element={<CreateBuyer />} />
+                <Route path="/admin/buyers/:buyerId" element={<BuyerDetail />} />
+                <Route path="/admin/buyers/:buyerId/edit" element={<EditBuyer />} />
+                <Route path="/admin/buyers/:buyerId/offers" element={<BuyerOffers />} />
+                <Route path="/admin/buyer-lists" element={<BuyerLists />} />
+                <Route path="/admin/qualifications" element={<QualificationsDashboard />} />
+                <Route path="/add-property" element={<AddProperty />} />
+                <Route path="/edit-property/:propertyId" element={<EditProperty />} />
+                <Route path="/financing/applications" element={<OfferTable />} />
+              </Route>
+            </Routes>
           </BrowserRouter>
         </ThemeProvider>
         {/* Toast notifications container */}
