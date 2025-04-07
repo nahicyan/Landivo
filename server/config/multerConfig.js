@@ -27,13 +27,13 @@ export const upload = multer({
   storage,
   limits: { fileSize: 5 * 1024 * 1024 }, // Limit file size to 5MB per file
   fileFilter: function (req, file, cb) {
-    // Accept only image files (jpg, jpeg, png, gif)
-    const allowedTypes = /jpeg|jpg|png|gif/;
+    // Accept only image files (jpg, jpeg, png, webp, gif)
+    const allowedTypes = /jpeg|jpg|png|webp|gif/;
     const ext = path.extname(file.originalname).toLowerCase();
     if (allowedTypes.test(ext)) {
       cb(null, true);
     } else {
-      cb(new Error("Only image files are allowed (jpeg, jpg, png, gif)."));
+      cb(new Error("Only image files are allowed (jpeg, jpg, png, webp, gif)."));
     }
   },
 });

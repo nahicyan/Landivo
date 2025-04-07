@@ -3,22 +3,22 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { ToastContainer } from "react-toastify";
 import { ReactQueryDevtools } from "react-query/devtools";
-import { ThemeProvider } from "@mui/material/styles"; // Import MUI ThemeProvider
-import theme from "./theme"; // Our custom theme with colors
-import Layout from "./components/Layout/Layout"; // Your layout component
-import AdminLayout from "./components/Layout/AdminLayout"; // New Admin Layout component
-import Site from "./pages/Site"; // Home page
-import Properties from "./pages/Properties/Properties"; // Properties listing page
-import Property from "./pages/Property/Property"; // Property detail page
-import Offer from "./components/Offer/Offer"; // Offer component
-import AddProperty from "./pages/AddProperty/AddProperty"; // Add Property page
-import { UserProvider } from "./utils/UserContext"; // User context provider
-import EditProperty from "./pages/EditProperty/EditProperty"; // Edit Property page
-import DFW from "./pages/DFW/DFW"; // DFW Property page
-import Austin from "./pages/Austin/Austin"; // Austin Property page
-import Houston from "./pages/Houston/Houston"; // Houston Property page
-import SanAntonio from "./pages/SanAntonio/SanAntonio"; // San Antonio Property page
-import OtherLands from "./pages/OtherLands/OtherLands"; // Other Lands Property page
+import { ThemeProvider } from "@mui/material/styles";
+import theme from "./theme";
+import Layout from "./components/Layout/Layout";
+import AdminLayout from "./components/Layout/AdminLayout"; // Make sure this path is correct
+import Site from "./pages/Site";
+import Properties from "./pages/Properties/Properties";
+import Property from "./pages/Property/Property";
+import Offer from "./components/Offer/Offer";
+import AddProperty from "./pages/AddProperty/AddProperty";
+import { UserProvider } from "./utils/UserContext";
+import EditProperty from "./pages/EditProperty/EditProperty";
+import DFW from "./pages/DFW/DFW";
+import Austin from "./pages/Austin/Austin";
+import Houston from "./pages/Houston/Houston";
+import SanAntonio from "./pages/SanAntonio/SanAntonio";
+import OtherLands from "./pages/OtherLands/OtherLands";
 import Financing from "./pages/Financing/Financing";
 import AboutUs from "./pages/AboutUs/AboutUs";
 import Support from "./pages/Support/Support";
@@ -30,8 +30,8 @@ import ScrollToTop from "./components/ScrollToTop/ScrollToTop";
 import Sell from "./pages/Sell/Sell";
 import Qualify from "./pages/Qualify/Qualify";
 import QualificationsDashboard from "./components/QualificationsDashboard/QualificationsDashboard";
-import Subscription from "./pages/Subscription/Subscription"; // Import our new Subscription page
-import VipSignupForm from "./pages/Subscription/VipSignupForm"; // VIP signup form
+import Subscription from "./pages/Subscription/Subscription";
+import VipSignupForm from "./pages/Subscription/VipSignupForm";
 import AdminUsers from "./pages/AdminUsers/AdminUsers";
 import UserDetail from "./components/UserDetail/UserDetail";
 import AdminBuyers from "./pages/AdminBuyers/AdminBuyers";
@@ -41,20 +41,16 @@ import EditBuyer from "./components/EditBuyer/EditBuyer";
 import BuyerOffers from "./components/BuyerOffers/BuyerOffers";
 import BuyerLists from "./components/BuyerLists/BuyerLists";
 
-// Import "react-toastify/dist/ReactToastify.css" for toast styling
 import "react-toastify/dist/ReactToastify.css";
 
-// Create the React Query client
 const queryClient = new QueryClient();
 
 function App() {
   return (
     <UserProvider>
       <QueryClientProvider client={queryClient}>
-        {/* Wrap the app with MUI ThemeProvider for consistent styling */}
         <ThemeProvider theme={theme}>
           <BrowserRouter>
-            {/* Scroll to top on route change */}
             <ScrollToTop />
             <Routes>
               {/* Main site routes with standard layout */}
@@ -82,27 +78,25 @@ function App() {
               </Route>
 
               {/* Admin routes with AdminLayout */}
-              <Route element={<AdminLayout />}>
-                <Route path="/admin" element={<Admin />} />
-                <Route path="/admin/users" element={<AdminUsers />} />
-                <Route path="/admin/users/:userId" element={<UserDetail />} />
-                <Route path="/admin/buyers" element={<AdminBuyers />} />
-                <Route path="/admin/buyers/create" element={<CreateBuyer />} />
-                <Route path="/admin/buyers/:buyerId" element={<BuyerDetail />} />
-                <Route path="/admin/buyers/:buyerId/edit" element={<EditBuyer />} />
-                <Route path="/admin/buyers/:buyerId/offers" element={<BuyerOffers />} />
-                <Route path="/admin/buyer-lists" element={<BuyerLists />} />
-                <Route path="/admin/qualifications" element={<QualificationsDashboard />} />
-                <Route path="/add-property" element={<AddProperty />} />
-                <Route path="/edit-property/:propertyId" element={<EditProperty />} />
-                <Route path="/financing/applications" element={<OfferTable />} />
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<Admin />} />
+                <Route path="users" element={<AdminUsers />} />
+                <Route path="users/:userId" element={<UserDetail />} />
+                <Route path="buyers" element={<AdminBuyers />} />
+                <Route path="buyers/create" element={<CreateBuyer />} />
+                <Route path="buyers/:buyerId" element={<BuyerDetail />} />
+                <Route path="buyers/:buyerId/edit" element={<EditBuyer />} />
+                <Route path="buyers/:buyerId/offers" element={<BuyerOffers />} />
+                <Route path="buyer-lists" element={<BuyerLists />} />
+                <Route path="qualifications" element={<QualificationsDashboard />} />
+                <Route path="add-property" element={<AddProperty />} />
+                <Route path="edit-property/:propertyId" element={<EditProperty />} />
+                <Route path="financing/applications" element={<OfferTable />} />
               </Route>
             </Routes>
           </BrowserRouter>
         </ThemeProvider>
-        {/* Toast notifications container */}
         <ToastContainer />
-        {/* React Query DevTools for debugging */}
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
     </UserProvider>

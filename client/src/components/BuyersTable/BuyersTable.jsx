@@ -1,6 +1,9 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "react-query";
+import { getAllBuyers, getProperty } from "@/utils/api";
 import { format } from "date-fns";
+import { formatPrice } from "@/utils/format";
 
 import {
   CardHeader,
@@ -35,24 +38,52 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { 
-  Search, 
-  Mail, 
+  Edit, 
+  Eye, 
   Filter, 
+  Search, 
+  DollarSign, 
+  TrendingUp, 
+  BadgeDollarSign,
+  Mail,
   PlusCircle, 
   Trash2, 
   Download, 
   MoreVertical, 
-  FileUp,
-  Eye
+  FileUp
 } from "lucide-react";
 
-// Import constants
-import { AREAS, BUYER_TYPES, getBuyerTypeClass } from "./buyerConstants";
+// Import constants - if not already defined, create them locally
+const AREAS = [
+  { id: 'DFW', label: 'Dallas Fort Worth', value: 'dfw' },
+  { id: 'Austin', label: 'Austin', value: 'austin' },
+  { id: 'Houston', label: 'Houston', value: 'houston' },
+  { id: 'San Antonio', label: 'San Antonio', value: 'san antonio' },
+  { id: 'Other Areas', label: 'Other Areas', value: 'other areas' }
+];
 
-/**
- * BuyersTable component - Displays a table of buyers with filtering and actions
- */
-const BuyersTable = ({ 
+const BUYER_TYPES = [
+  { id: 'CashBuyer', label: 'Cash Buyer' },
+  { id: 'Builder', label: 'Builder' },
+  { id: 'Developer', label: 'Developer' },
+  { id: 'Realtor', label: 'Realtor' },
+  { id: 'Investor', label: 'Investor' },
+  { id: 'Wholesaler', label: 'Wholesaler' }
+];
+
+const getBuyerTypeClass = (type) => {
+  switch(type) {
+    case 'CashBuyer': return 'bg-green-50 text-green-600 border-green-200';
+    case 'Builder': return 'bg-blue-50 text-blue-600 border-blue-200';
+    case 'Developer': return 'bg-purple-50 text-purple-600 border-purple-200';
+    case 'Realtor': return 'bg-orange-50 text-orange-600 border-orange-200';
+    case 'Investor': return 'bg-indigo-50 text-indigo-600 border-indigo-200';
+    case 'Wholesaler': return 'bg-rose-50 text-rose-600 border-rose-200';
+    default: return 'bg-gray-50 text-gray-600 border-gray-200';
+  }
+};
+
+export default function BuyersTable({
   filteredBuyers = [],
   buyers = [],
   selectedBuyers = [],
@@ -72,11 +103,121 @@ const BuyersTable = ({
   onExport = () => {},
   onViewActivity = () => {},
   navigate = null,
-}) => {
-  // Use the passed navigate prop or get it from useNavigate
+}) {
   const routerNavigate = useNavigate();
   const navigateTo = navigate || routerNavigate;
+  const [propertyDetails, setPropertyDetails] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [internalBuyerData, setInternalBuyerData] = useState([]);
+  const [internalFilteredBuyers, setInternalFilteredBuyers] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterType, setFilterType] = useState("");
 
+  // Check if props were provided or we need to fetch data internally
+  const usingProvidedData = buyers.length > 0 || filteredBuyers.length > 0;
+
+  // Fetch all buyers data if not provided through props
+  const { data: fetchedBuyers, isError } = useQuery(
+    ["buyers"],
+    getAllBuyers,
+    {
+      refetchOnWindowFocus: false,
+      enabled: !usingProvidedData,
+    }
+  );
+
+  useEffect(() => {
+    // If using provided data
+    if (usingProvidedData) {
+      // Use the buyers passed in props 
+      const buyersToUse = filteredBuyers.length > 0 ? filteredBuyers : buyers;
+      
+      // Get property details for profit calculation
+      fetchPropertyDetailsForBuyers(buyersToUse);
+      setIsLoading(false);
+    } 
+    // Otherwise use fetched data
+    else if (fetchedBuyers && Array.isArray(fetchedBuyers)) {
+      setInternalBuyerData(fetchedBuyers);
+      
+      // Filter the fetched buyers based on internal state
+      const filtered = fetchedBuyers.filter(buyer => {
+        const searchMatch = 
+          searchTerm === "" ||
+          buyer.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          buyer.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          buyer.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          buyer.phone?.includes(searchTerm);
+        
+        const typeMatch = filterType === "" || buyer.buyerType === filterType;
+        
+        return searchMatch && typeMatch;
+      });
+      
+      setInternalFilteredBuyers(filtered);
+      
+      // Get property details for profit calculation
+      fetchPropertyDetailsForBuyers(fetchedBuyers);
+      setIsLoading(false);
+    }
+  }, [fetchedBuyers, usingProvidedData, buyers, filteredBuyers, searchTerm, filterType]);
+
+  // Helper function to fetch property details for offers
+  const fetchPropertyDetailsForBuyers = async (buyersArray) => {
+    const propertyIds = new Set();
+    
+    buyersArray.forEach(buyer => {
+      if (buyer.offers && buyer.offers.length > 0) {
+        buyer.offers.forEach(offer => {
+          propertyIds.add(offer.propertyId);
+        });
+      }
+    });
+    
+    // Fetch details for each property to get purchase prices
+    const details = {};
+    for (const id of propertyIds) {
+      try {
+        const property = await getProperty(id);
+        details[id] = property;
+      } catch (error) {
+        console.error(`Error fetching property ${id}:`, error);
+      }
+    }
+    
+    setPropertyDetails(details);
+  };
+
+  // Use either the provided buyers or our internal ones
+  const buyersToDisplay = usingProvidedData ? filteredBuyers : internalFilteredBuyers;
+  const allBuyers = usingProvidedData ? buyers : internalBuyerData;
+
+  // Calculate profit for an offer
+  const calculateProfit = (offer) => {
+    if (!offer || !propertyDetails[offer.propertyId]) return null;
+    
+    const property = propertyDetails[offer.propertyId];
+    const purchasePrice = property.purchasePrice || 0;
+    const sellingPrice = offer.offeredPrice || 0;
+    
+    return sellingPrice - purchasePrice;
+  };
+
+  // Format profit with color and sign
+  const formatProfit = (profit) => {
+    if (profit === null) return "-";
+    
+    const formattedValue = formatPrice(Math.abs(profit));
+    const isPositive = profit > 0;
+    
+    return (
+      <span className={`flex items-center ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+        {isPositive ? <TrendingUp className="w-4 h-4 mr-1" /> : <TrendingUp className="w-4 h-4 mr-1 transform rotate-180" />}
+        {isPositive ? '+' : '-'}${formattedValue}
+      </span>
+    );
+  };
+  
   // Generate activity score from ID (for demo purposes)
   const getActivityScore = (buyerId) => {
     // Make sure we have a valid ID string
@@ -93,6 +234,22 @@ const BuyersTable = ({
       return Math.floor(Math.random() * 100); // Fallback to random score
     }
   };
+
+  if (isError) {
+    return (
+      <div className="text-center py-6">
+        <p className="text-red-500">Failed to load buyers data. Please try again.</p>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="text-center py-6">
+        <p>Loading buyer data...</p>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -141,8 +298,8 @@ const BuyersTable = ({
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               placeholder="Search by name, email, or phone"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              value={usingProvidedData ? searchQuery : searchTerm}
+              onChange={(e) => usingProvidedData ? setSearchQuery(e.target.value) : setSearchTerm(e.target.value)}
               className="pl-9 border-[#324c48]/30"
             />
           </div>
@@ -166,7 +323,7 @@ const BuyersTable = ({
             </div>
             
             <div className="w-1/2">
-              <Select value={buyerTypeFilter} onValueChange={setBuyerTypeFilter}>
+              <Select value={usingProvidedData ? buyerTypeFilter : filterType} onValueChange={usingProvidedData ? setBuyerTypeFilter : setFilterType}>
                 <SelectTrigger className="border-[#324c48]/30">
                   <div className="flex items-center">
                     <Filter className="h-4 w-4 mr-2 text-gray-400" />
@@ -240,7 +397,7 @@ const BuyersTable = ({
               <TableRow>
                 <TableHead className="w-12">
                   <Checkbox
-                    checked={selectedBuyers.length === filteredBuyers.length && filteredBuyers.length > 0}
+                    checked={selectedBuyers.length === buyersToDisplay.length && buyersToDisplay.length > 0}
                     onCheckedChange={onSelectAll}
                     aria-label="Select all"
                     className="translate-y-[2px]"
@@ -251,15 +408,33 @@ const BuyersTable = ({
                 <TableHead>Areas</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Activity</TableHead>
+                <TableHead>Latest Offer</TableHead>
+                <TableHead>Profit Potential</TableHead>
                 <TableHead>Source</TableHead>
                 <TableHead>Date Added</TableHead>
                 <TableHead className="w-12"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredBuyers.length > 0 ? (
-                filteredBuyers.map(buyer => {
+              {buyersToDisplay.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={11} className="h-24 text-center">
+                    {(searchQuery || searchTerm || areaFilter !== "all" || buyerTypeFilter !== "all" || sourceFilter !== "all") 
+                      ? "No buyers found matching your filters." 
+                      : "No buyers found. Add your first buyer to get started!"}
+                  </TableCell>
+                </TableRow>
+              ) : (
+                buyersToDisplay.map((buyer) => {
                   const activityScore = getActivityScore(buyer.id);
+                  
+                  // Get the most recent offer
+                  const latestOffer = buyer.offers && buyer.offers.length > 0
+                    ? buyer.offers[0] // Already sorted by descending date
+                    : null;
+                  
+                  // Calculate potential profit
+                  const profit = calculateProfit(latestOffer);
                   
                   return (
                     <TableRow key={buyer.id} className="group">
@@ -320,10 +495,40 @@ const BuyersTable = ({
                               onClick={() => onViewActivity(buyer)}
                             >
                               <Eye className="h-3 w-3 mr-1" />
-                              View Activity
+                              View
                             </Badge>
                           </div>
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        {latestOffer ? (
+                          <div className="flex flex-col">
+                            <div className="text-sm font-medium flex items-center">
+                              <DollarSign className="w-3.5 h-3.5 mr-1" />
+                              {formatPrice(latestOffer.offeredPrice)}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {new Date(latestOffer.timestamp).toLocaleDateString()}
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-sm text-gray-500">No offers</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {latestOffer ? (
+                          <div className="flex flex-col">
+                            {formatProfit(profit)}
+                            {propertyDetails[latestOffer?.propertyId]?.purchasePrice && (
+                              <div className="text-xs text-gray-500 flex items-center mt-1">
+                                <BadgeDollarSign className="w-3 h-3 mr-1" />
+                                Cost: ${formatPrice(propertyDetails[latestOffer.propertyId].purchasePrice)}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-sm text-gray-500">-</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         {buyer?.source === 'VIP Buyers List' ? (
@@ -375,14 +580,6 @@ const BuyersTable = ({
                     </TableRow>
                   );
                 })
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={9} className="h-24 text-center">
-                    {searchQuery || areaFilter !== "all" || buyerTypeFilter !== "all" || sourceFilter !== "all" 
-                      ? "No buyers found matching your filters." 
-                      : "No buyers found. Add your first buyer to get started!"}
-                  </TableCell>
-                </TableRow>
               )}
             </TableBody>
           </Table>
@@ -391,7 +588,7 @@ const BuyersTable = ({
       
       <CardFooter className="justify-between py-4 border-t">
         <div className="text-sm text-gray-500">
-          Showing {filteredBuyers.length} of {buyers.length} buyers
+          Showing {buyersToDisplay.length} of {allBuyers.length} buyers
         </div>
         <Button 
           variant="outline" 
@@ -404,6 +601,4 @@ const BuyersTable = ({
       </CardFooter>
     </>
   );
-};
-
-export default BuyersTable;
+}
