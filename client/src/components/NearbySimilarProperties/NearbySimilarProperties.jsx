@@ -1,18 +1,19 @@
 import React, { useState, useRef, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import SlickPropertyCard from "../../components/SlickPropertyCard"; // Import your SlickPropertyCard component
-import { useLocation } from "react-router-dom"; // Import useLocation to get current path
+import PropertyCard from "../../components/PropertyCard/PropertyCard";
 
 const NearbySimilarProperties = ({ 
   currentProperty,
-  allProperties
+  allProperties,
+  navigate 
 }) => {
   const [scrollPosition, setScrollPosition] = useState(0);
   const containerRef = useRef(null);
-  const location = useLocation(); // Get current location to determine URL structure
   
-  // Filter and sort properties to find similar ones
+  // Filter and sort properties to find similar ones based on:
+  // 1. Match both area and zoning (highest priority)
+  // 2. Match only area (second priority)
   const similarProperties = allProperties
     .filter(property => {
       // Skip the current property
@@ -80,17 +81,6 @@ const NearbySimilarProperties = ({
   // If no similar properties, don't render
   if (!similarProperties.length) return null;
 
-  // Create modified property objects with path corrections for the SlickPropertyCard
-  const preparedProperties = similarProperties.map(property => {
-    // Create a shallow copy of the property
-    const modifiedProperty = { ...property };
-    
-    // Add an additional property that will be used by a wrapper
-    modifiedProperty._fixedId = property.id;
-    
-    return modifiedProperty;
-  });
-
   return (
     <div className="w-full bg-[#FDF8F2] py-12">
       <div className="mx-auto max-w-screen-xl px-4">
@@ -117,21 +107,12 @@ const NearbySimilarProperties = ({
             onScroll={handleScroll}
           >
             <div className="flex flex-col items-start space-y-6 sm:flex-row sm:items-start sm:space-y-0 sm:space-x-20">
-              {preparedProperties.map((card) => (
+              {similarProperties.map((card) => (
                 <div
                   key={card.id}
                   className="w-72 flex-shrink-0 transition hover:scale-105"
-                  // Since we can't modify SlickPropertyCard, we wrap it in a fix
-                  onClick={(e) => {
-                    // Stop the original click from propagating - this is crucial
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    // Navigate directly to the correct absolute URL
-                    window.location.href = `/properties/${card._fixedId}`;
-                  }}
                 >
-                  <SlickPropertyCard card={card} />
+                  <PropertyCard card={card} />
                 </div>
               ))}
             </div>
