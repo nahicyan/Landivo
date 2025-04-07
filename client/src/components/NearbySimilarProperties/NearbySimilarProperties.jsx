@@ -11,24 +11,40 @@ const NearbySimilarProperties = ({
   const [scrollPosition, setScrollPosition] = useState(0);
   const containerRef = useRef(null);
   
+  // Validate inputs before processing
+  if (!currentProperty || !allProperties || !Array.isArray(allProperties)) {
+    console.warn("NearbySimilarProperties: Missing or invalid props");
+    return null;
+  }
+  
   // Filter and sort properties to find similar ones based on:
-  // 1. Match both area and zoning (highest priority)
-  // 2. Match only area (second priority)
+  // 1. First make sure we're only working with valid properties
+  // 2. Match both area and zoning (highest priority)
+  // 3. Match only area (second priority)
   const similarProperties = allProperties
     .filter(property => {
-      // Skip the current property
-      if (property.id === currentProperty.id) return false;
+      // Ensure property is valid and has necessary fields
+      if (!property || !property.id || property.id === currentProperty.id) {
+        return false;
+      }
       
       // Area match
-      const areaMatch = property.area === currentProperty.area;
+      const areaMatch = property.area && 
+                        currentProperty.area && 
+                        property.area === currentProperty.area;
       
       // Only consider properties that match by area
       return areaMatch;
     })
     .sort((a, b) => {
+      // Handle null/undefined zoning values
+      const aZoning = a.zoning || "";
+      const bZoning = b.zoning || "";
+      const currentZoning = currentProperty.zoning || "";
+      
       // Prioritize zoning match
-      const aZoningMatch = a.zoning === currentProperty.zoning ? 1 : 0;
-      const bZoningMatch = b.zoning === currentProperty.zoning ? 1 : 0;
+      const aZoningMatch = aZoning === currentZoning ? 1 : 0;
+      const bZoningMatch = bZoning === currentZoning ? 1 : 0;
       
       // Sort by zoning match (properties with matching zoning come first)
       return bZoningMatch - aZoningMatch;
@@ -107,12 +123,12 @@ const NearbySimilarProperties = ({
             onScroll={handleScroll}
           >
             <div className="flex flex-col items-start space-y-6 sm:flex-row sm:items-start sm:space-y-0 sm:space-x-20">
-              {similarProperties.map((card) => (
+              {similarProperties.map((property) => (
                 <div
-                  key={card.id}
+                  key={property.id}
                   className="w-72 flex-shrink-0 transition hover:scale-105"
                 >
-                  <PropertyCard card={card} />
+                  <PropertyCard card={property} />
                 </div>
               ))}
             </div>
