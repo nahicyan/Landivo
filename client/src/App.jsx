@@ -40,8 +40,11 @@ import CreateBuyer from "./components/CreateBuyer/CreateBuyer";
 import EditBuyer from "./components/EditBuyer/EditBuyer";
 import BuyerOffers from "./components/BuyerOffers/BuyerOffers";
 import BuyerLists from "./components/BuyerLists/BuyerLists";
+import { Auth0ProviderWithNavigate } from "./components/Auth0/Auth0Provider";
+import Profile from "./pages/Profile/Profile";
 
 import "react-toastify/dist/ReactToastify.css";
+
 
 const queryClient = new QueryClient();
 
@@ -51,6 +54,7 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider theme={theme}>
           <BrowserRouter>
+          <Auth0ProviderWithNavigate>
             <ScrollToTop />
             <Routes>
               {/* Main site routes with standard layout */}
@@ -74,6 +78,7 @@ function App() {
                 <Route path="/SanAntonio" element={<SanAntonio />} />
                 <Route path="/OtherLands" element={<OtherLands />} />
                 <Route path="/qualify" element={<Qualify />} />
+                <Route path="/profile" element={<Profile />} />
                 <Route path="/CreateUservbtwP44jbX0FKKYUdHBGGCcYqenvNlYdH1Sj7K1dSD3kRo1Pib5VXQWb59a7CkQZ4DiQuu5r1t9I0uXVUbYjvvj4E1djRIkXRh40Uvbz2jSz6PZKguOjGhi7avF1b" element={<CreateUser />} />
               </Route>
 
@@ -94,6 +99,7 @@ function App() {
                 <Route path="financing/applications" element={<OfferTable />} />
               </Route>
             </Routes>
+            </Auth0ProviderWithNavigate>
           </BrowserRouter>
         </ThemeProvider>
         <ToastContainer />

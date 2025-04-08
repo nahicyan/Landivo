@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { checkSession, loginUser, logoutUser } from "../../utils/api";
 import { UserContext } from "../../utils/UserContext";
-import LoginModal from "../LoginModal/LoginModal";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -17,53 +15,49 @@ import {
   NavigationMenuLink,
 } from "@/components/ui/navigation-menu";
 import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet";
-import { Menu, X } from "lucide-react";
+import { Menu, X, User, LogOut } from "lucide-react";
+import { useAuth0 } from "@auth0/auth0-react";
 
 const Header = () => {
   const navigate = useNavigate();
   const { currentUser, setCurrentUser } = useContext(UserContext);
-  const [showLoginModal, setShowLoginModal] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  
+  // Auth0 hooks provide authentication state and methods
+  const { 
+    loginWithRedirect, 
+    logout, 
+    user, 
+    isAuthenticated, 
+    isLoading 
+  } = useAuth0();
 
+  // Update UserContext with Auth0 user info when authenticated
   useEffect(() => {
-    const checkUserSession = async () => {
-      try {
-        const response = await checkSession();
-        if (response.user) {
-          setCurrentUser(response.user);
-        }
-      } catch (error) {
-        console.error("Session check failed:", error);
+    if (isAuthenticated && user) {
+      setCurrentUser({
+        name: user.name || user.nickname || user.email,
+        email: user.email,
+        image: user.picture,
+        // Map additional user properties as needed
+      });
+    }
+  }, [isAuthenticated, user, setCurrentUser]);
+
+  // Handler for login button click
+  const handleLogin = () => {
+    loginWithRedirect();
+  };
+
+  // Handler for logout button click
+  const handleLogout = () => {
+    logout({ 
+      logoutParams: {
+        returnTo: window.location.origin 
       }
-    };
-    checkUserSession();
-  }, [setCurrentUser]);
-
-  const handleLoginData = async ({ email, password }) => {
-    try {
-      const data = await loginUser({ email, password });
-      if (data.user) setCurrentUser(data.user);
-      setShowLoginModal(false);
-    } catch (error) {
-      console.error("Login failed:", error);
-    }
-  };
-
-  // Updated logout logic using try/catch/finally
-  const handleLogout = async () => {
-    try {
-      await logoutUser();
-    } catch (error) {
-      console.error("Logout failed:", error);
-    } finally {
-      setCurrentUser(null);
-      navigate("/");
-    }
-  };
-
-  const toggleDropdown = () => {
-    setDropdownOpen(!dropdownOpen);
+    });
+    // Clear user from context
+    setCurrentUser(null);
   };
 
   return (
@@ -114,9 +108,11 @@ const Header = () => {
                     </Link>
                   ))}
 
-                  {!currentUser ? (
+                  {isLoading ? (
+                    <div className="h-10 bg-gray-200 animate-pulse rounded"></div>
+                  ) : !isAuthenticated ? (
                     <Button
-                      onClick={() => setShowLoginModal(true)}
+                      onClick={handleLogin}
                       className="w-full bg-[#3f4f24] text-white hover:bg-[#2c3b18]"
                     >
                       Login / Sign Up
@@ -159,10 +155,12 @@ const Header = () => {
               </NavigationMenuList>
             </NavigationMenu>
 
-            {/* Login / User Dropdown */}
-            {!currentUser ? (
+            {/* Auth0 Login Button or User Profile */}
+            {isLoading ? (
+              <div className="h-10 w-28 bg-gray-200 animate-pulse rounded"></div>
+            ) : !isAuthenticated ? (
               <Button
-                onClick={() => setShowLoginModal(true)}
+                onClick={handleLogin}
                 className="bg-[#3f4f24] text-white hover:bg-[#2c3b18]"
               >
                 Login / Sign Up
@@ -174,7 +172,18 @@ const Header = () => {
                     variant="ghost"
                     className="text-[#3f4f24] hover:text-[#D4A017] flex items-center"
                   >
-                    {`Welcome, ${currentUser.name}`}
+                    {user?.picture ? (
+                      <img 
+                        src={user.picture} 
+                        alt={user.name || "Profile"} 
+                        className="w-8 h-8 rounded-full mr-2"
+                      />
+                    ) : (
+                      <User className="w-5 h-5 mr-2" />
+                    )}
+                    <span className="max-w-[150px] truncate">
+                      {user?.name || user?.nickname || user?.email}
+                    </span>
                     <svg
                       className="w-5 h-5 ml-2 -mr-1"
                       xmlns="http://www.w3.org/2000/svg"
@@ -195,16 +204,31 @@ const Header = () => {
                 >
                   <DropdownMenuItem asChild>
                     <Link
-                      to="/admin"
-                      className="text-[#324c48] hover:text-[#D4A017] cursor-pointer"
+                      to="/profile"
+                      className="text-[#324c48] hover:text-[#D4A017] cursor-pointer flex items-center"
                     >
-                      Dashboard
+                      <User className="w-4 h-4 mr-2" />
+                      Profile
                     </Link>
                   </DropdownMenuItem>
+                  
+                  {/* Conditionally show admin dashboard link if user has admin role */}
+                  {user && user['https://landivo.com/roles']?.includes('admin') && (
+                    <DropdownMenuItem asChild>
+                      <Link
+                        to="/admin"
+                        className="text-[#324c48] hover:text-[#D4A017] cursor-pointer"
+                      >
+                        Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  
                   <DropdownMenuItem
                     onClick={handleLogout}
-                    className="text-red-600 hover:bg-background-200 cursor-pointer"
+                    className="text-red-600 hover:bg-background-200 cursor-pointer flex items-center"
                   >
+                    <LogOut className="w-4 h-4 mr-2" />
                     Logout
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -214,45 +238,8 @@ const Header = () => {
         </nav>
       </div>
 
-      {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <nav className="lg:hidden bg-[#FDF8F2] border-t border-gray-200 shadow-md py-4">
-          <div className="flex flex-col space-y-2 px-6">
-            {["Properties", "Sell", "Financing", "About Us", "Support"].map((item) => (
-              <Link
-                key={item}
-                to={`/${item.toLowerCase().replace(/\s/g, "-")}`}
-                className="py-2 text-base font-medium text-[#333] hover:text-[#576756]"
-              >
-                {item}
-              </Link>
-            ))}
+      {/* Removed mobile menu as it's now handled by Sheet component */}
 
-            {!currentUser ? (
-              <Button
-                onClick={() => setShowLoginModal(true)}
-                className="w-full px-5 py-3 text-base font-semibold text-white bg-[#576756] rounded-md hover:bg-[#001530] transition"
-              >
-                Login / Sign Up
-              </Button>
-            ) : (
-              <Button
-                onClick={handleLogout}
-                className="w-full px-5 py-3 text-base font-semibold text-white bg-[#2C5F2D] rounded-md hover:bg-[#244a20] transition"
-              >
-                Logout
-              </Button>
-            )}
-          </div>
-        </nav>
-      )}
-
-      {showLoginModal && (
-        <LoginModal
-          onSubmit={handleLoginData}
-          onClose={() => setShowLoginModal(false)}
-        />
-      )}
     </header>
   );
 };

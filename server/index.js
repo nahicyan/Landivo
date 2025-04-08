@@ -13,6 +13,7 @@ import { buyerRoute } from "./routes/buyerRoute.js";
 import { sessionLogger, ensureAuthenticated } from "./middlewares/sessionMiddleware.js";
 import { qualificationRoute } from "./routes/qualificationRoute.js";
 import { buyerListRoute } from "./routes/buyerListRoute.js";
+import { jwtCheck, extractUserFromToken } from "./middlewares/authMiddleware.js";
 
 const app = express();
 const PORT = process.env.PORT || 8200;
@@ -61,9 +62,6 @@ app.use((req, res, next) => {
 });
 
 
-app.use(passport.initialize());
-app.use(passport.session());
-
 // 4) Middleware for logging session and request information
 app.use(sessionLogger);
 
@@ -75,27 +73,18 @@ app.use("/api/user", userRoute);
 app.use("/api/residency", residencyRoute);
 app.use("/api/buyer", buyerRoute);
 app.use("/api/qualification", qualificationRoute);
+app.use("/api/buyer-lists", buyerListRoute);
 
 // 7) Authentication routes
-app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
-
-app.get(
-  "/auth/google/callback",
-  passport.authenticate("google", { failureRedirect: "/login" }),
-  (req, res) => {
-    console.log("Google callback triggered:", req.user);
-    res.redirect(`${clientConfig.redirect_uris[0]}?user=${req.user.email}`);
-  }
-);
-
-app.get("/auth/logout", (req, res) => {
-  req.logout((err) => {
-    if (err) {
-      return res.status(500).json({ message: "Logout failed" });
-    }
-    res.status(200).json({ message: "Logout successful" }); // Send JSON response
+// Auth route for testing JWT token
+app.get("/auth/test-jwt", jwtCheck, extractUserFromToken, (req, res) => {
+  console.log("Authenticated user:", req.user);
+  res.json({ 
+    message: "Authentication successful", 
+    user: req.user 
   });
 });
+
 
 // 8) Test session endpoint (with authentication check)
 app.get("/auth/test-session", ensureAuthenticated, (req, res) => {
