@@ -260,8 +260,10 @@ export default function VipSignupForm() {
         
         // Redirect to Auth0 signup with redirect back to this page
         loginWithRedirect({
-          screen_hint: 'signup',
-          redirectUri: `${window.location.origin}/vip-signup?email=${encodeURIComponent(email)}`,
+          authorizationParams: {
+            screen_hint: 'signup',
+            redirect_uri: `${window.location.origin}/vip-signup?email=${encodeURIComponent(email)}`
+          },
           appState: { returnTo: `/vip-signup?email=${encodeURIComponent(email)}` }
         });
         return; // Don't proceed with API call yet
