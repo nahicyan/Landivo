@@ -130,7 +130,7 @@ model Offer {
     buyer       Buyer    @relation("BuyerOffers", fields: [buyerId], references: [id])
 }
 
-// In server/prisma/schema.prisma
+
 model Buyer {
     id         String   @id @default(auto()) @map("_id") @db.ObjectId
     email      String   @unique
@@ -143,7 +143,9 @@ model Buyer {
     offers     Offer[] @relation("BuyerOffers")
     createdAt  DateTime @default(now())
     updatedAt  DateTime @updatedAt
+    auth0Id    String?  // this field to store Auth0 user ID
 }
+
 enum BuyerType {
     CashBuyer
     Builder

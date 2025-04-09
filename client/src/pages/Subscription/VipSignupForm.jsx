@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth0 } from '@auth0/auth0-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -13,11 +14,21 @@ import { createVipBuyer } from "@/utils/api";
 
 // Define the available areas
 const AREAS = [
-  { id: 'dfw', label: 'Dallas Fort Worth' },
-  { id: 'austin', label: 'Austin' },
-  { id: 'houston', label: 'Houston' },
-  { id: 'sanantonio', label: 'San Antonio' },
-  { id: 'others', label: 'Others' }
+  { id: 'DFW', label: 'Dallas Fort Worth' },
+  { id: 'Austin', label: 'Austin' },
+  { id: 'Houston', label: 'Houston' },
+  { id: 'San Antonio', label: 'San Antonio' },
+  { id: 'Other Areas', label: 'Other Areas' }
+];
+
+// Define buyer types
+const BUYER_TYPES = [
+  { id: 'CashBuyer', label: 'Cash Buyer' },
+  { id: 'Builder', label: 'Builder' },
+  { id: 'Developer', label: 'Developer' },
+  { id: 'Realtor', label: 'Realtor' },
+  { id: 'Investor', label: 'Investor' },
+  { id: 'Wholesaler', label: 'Wholesaler' }
 ];
 
 export default function VipSignupForm() {
@@ -27,6 +38,9 @@ export default function VipSignupForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  
+  // Auth0 authentication hooks
+  const { isAuthenticated, loginWithRedirect, user } = useAuth0();
   
   // Form state
   const [formData, setFormData] = useState({
@@ -52,11 +66,21 @@ export default function VipSignupForm() {
     const emailParam = searchParams.get('email');
     if (emailParam) {
       setEmail(emailParam);
+      
+      // If user is authenticated, pre-fill the form with Auth0 user data
+      if (isAuthenticated && user) {
+        setFormData(prev => ({
+          ...prev,
+          firstName: user.given_name || user.name?.split(' ')[0] || '',
+          lastName: user.family_name || user.name?.split(' ').slice(1).join(' ') || '',
+          // Don't override other fields that might be set already
+        }));
+      }
     } else {
       // If no email, redirect back to homepage
       navigate('/');
     }
-  }, [location, navigate]);
+  }, [location, navigate, isAuthenticated, user]);
 
   // Handle input changes
   const handleInputChange = (e) => {
@@ -222,33 +246,58 @@ export default function VipSignupForm() {
     if (!validateForm()) {
       return;
     }
-  
+
     try {
       setLoading(true);
       
-      // Make an actual API call to create the VIP buyer
+      // If user is not authenticated, store form data in localStorage and redirect to Auth0 signup
+      if (!isAuthenticated) {
+        // Save form data to localStorage
+        localStorage.setItem('vipSignupData', JSON.stringify({
+          email,
+          ...formData
+        }));
+        
+        // Redirect to Auth0 signup with redirect back to this page
+        loginWithRedirect({
+          screen_hint: 'signup',
+          redirectUri: `${window.location.origin}/vip-signup?email=${encodeURIComponent(email)}`,
+          appState: { returnTo: `/vip-signup?email=${encodeURIComponent(email)}` }
+        });
+        return; // Don't proceed with API call yet
+      }
+      
+      // If authenticated, include user's Auth0 ID in the submission
+      const buyerData = {
+        email,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        phone: formData.phone,
+        buyerType: formData.buyerType,
+        preferredAreas: formData.preferredAreas,
+        auth0Id: user.sub // Include Auth0 user ID to link buyer record
+      };
+      
+      // Make API call to create the VIP buyer
       const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/buyer/createVipBuyer`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          email,
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          phone: formData.phone,
-          buyerType: formData.buyerType,
-          preferredAreas: formData.preferredAreas // Add preferred areas to the payload
-        }),
+        body: JSON.stringify(buyerData),
       });
   
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || 'Failed to create VIP profile');
       }
       
       const data = await response.json();
       setSuccess(true);
+      
+      // Clear stored form data after successful submission
+      localStorage.removeItem('vipSignupData');
+      
     } catch (err) {
       console.error("Error creating VIP buyer profile:", err);
       setError(err.message || 'An error occurred while creating your profile');
@@ -256,6 +305,37 @@ export default function VipSignupForm() {
       setLoading(false);
     }
   };
+
+  // Check for saved form data when returning from Auth0
+  useEffect(() => {
+    // Only run this if user is authenticated and we're not in a success state
+    if (isAuthenticated && !success) {
+      const savedData = localStorage.getItem('vipSignupData');
+      if (savedData) {
+        try {
+          const parsedData = JSON.parse(savedData);
+          // Make sure we're on the right email before restoring data
+          if (parsedData.email === email) {
+            setFormData({
+              firstName: parsedData.firstName || '',
+              lastName: parsedData.lastName || '',
+              phone: parsedData.phone || '',
+              buyerType: parsedData.buyerType || '',
+              preferredAreas: parsedData.preferredAreas || []
+            });
+            
+            // Automatically submit the form if it's coming back from Auth0
+            setTimeout(() => {
+              const submitButton = document.querySelector('button[type="submit"]');
+              if (submitButton) submitButton.click();
+            }, 500);
+          }
+        } catch (e) {
+          console.error("Error parsing saved form data:", e);
+        }
+      }
+    }
+  }, [isAuthenticated, email, success]);
 
   return (
     <div className="bg-[#FDF8F2] min-h-screen py-16">

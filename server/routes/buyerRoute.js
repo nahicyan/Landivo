@@ -15,6 +15,7 @@ import {
   importBuyersFromCsv,
   getBuyerStats
 } from "../controllers/buyerCntrl.js";
+import { getBuyerByAuth0Id } from '../controllers/buyerCntrl.js';
 
 const router = express.Router();
 
@@ -29,7 +30,9 @@ router.get("/offers/buyer", getOffersByBuyer);
 router.post("/createVipBuyer", createVipBuyer);
 router.post("/create", createBuyer);
 
+
 // Buyer CRUD operations
+router.get("/byAuth0Id", getBuyerByAuth0Id);
 router.get("/all", getAllBuyers);
 router.get("/:id", getBuyerById);
 router.put("/update/:id", updateBuyer);

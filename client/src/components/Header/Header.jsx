@@ -33,14 +33,43 @@ const Header = () => {
   } = useAuth0();
 
   // Update UserContext with Auth0 user info when authenticated
+
   useEffect(() => {
     if (isAuthenticated && user) {
-      setCurrentUser({
-        name: user.name || user.nickname || user.email,
-        email: user.email,
-        image: user.picture,
-        // Map additional user properties as needed
-      });
+      // Use the correct endpoint
+      const fetchBuyerStatus = async () => {
+        try {
+          // Use the new endpoint
+          const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/buyer/byAuth0Id?auth0Id=${user.sub}`);
+          if (response.ok) {
+            const buyerData = await response.json();
+            
+            setCurrentUser({
+              name: user.name || user.nickname || user.email,
+              email: user.email,
+              image: user.picture,
+              isVIP: buyerData.source === "VIP Buyers List",
+              buyerType: buyerData.buyerType,
+            });
+          } else {
+            // Just set basic user info if buyer record not found
+            setCurrentUser({
+              name: user.name || user.nickname || user.email,
+              email: user.email,
+              image: user.picture,
+            });
+          }
+        } catch (error) {
+          console.error("Error fetching buyer status:", error);
+          setCurrentUser({
+            name: user.name || user.nickname || user.email,
+            email: user.email,
+            image: user.picture,
+          });
+        }
+      };
+      
+      fetchBuyerStatus();
     }
   }, [isAuthenticated, user, setCurrentUser]);
 

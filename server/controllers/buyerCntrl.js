@@ -232,10 +232,11 @@ export const getOffersByBuyer = asyncHandler(async (req, res) => {
   }
 });
 
+// Update in server/controllers/buyerCntrl.js
 export const createVipBuyer = asyncHandler(async (req, res) => {
-  const { email, phone, buyerType, firstName, lastName, preferredAreas } = req.body;
+  const { email, phone, buyerType, firstName, lastName, preferredAreas, auth0Id } = req.body;
 
-  // Validate that preferredAreas exists and is an array
+  // Validate required fields
   if (!email || !phone || !buyerType || !firstName || !lastName || !preferredAreas || !Array.isArray(preferredAreas)) {
     res.status(400).json({
       message: "All fields are required including preferred areas."
@@ -252,19 +253,20 @@ export const createVipBuyer = asyncHandler(async (req, res) => {
     });
 
     if (buyer) {
-      // Update existing buyer with VIP status and preferred areas
+      // Update existing buyer with VIP status, preferred areas, and Auth0 ID
       buyer = await prisma.buyer.update({
         where: { id: buyer.id },
         data: {
           firstName,
           lastName,
           buyerType,
-          preferredAreas, // Include preferred areas in update
-          source: "VIP Buyers List", 
+          preferredAreas,
+          source: "VIP Buyers List",
+          auth0Id  // Add Auth0 user ID to the buyer record
         },
       });
     } else {
-      // Create new buyer with VIP status and preferred areas
+      // Create new buyer with VIP status, preferred areas, and Auth0 ID
       buyer = await prisma.buyer.create({
         data: {
           email: email.toLowerCase(),
@@ -272,8 +274,9 @@ export const createVipBuyer = asyncHandler(async (req, res) => {
           buyerType,
           firstName,
           lastName,
-          preferredAreas, // Include preferred areas in creation
-          source: "VIP Buyers List", 
+          preferredAreas,
+          source: "VIP Buyers List",
+          auth0Id  // Add Auth0 user ID to the buyer record
         },
       });
     }
@@ -813,6 +816,34 @@ export const getBuyerStats = asyncHandler(async (req, res) => {
     console.error("Error getting buyer stats:", err);
     res.status(500).json({
       message: "An error occurred while fetching buyer statistics",
+      error: err.message
+    });
+  }
+});
+
+// 
+export const getBuyerByAuth0Id = asyncHandler(async (req, res) => {
+  const { auth0Id } = req.query;
+  
+  if (!auth0Id) {
+    return res.status(400).json({ message: "Auth0 ID is required" });
+  }
+  
+  try {
+    // Find buyer by Auth0 ID
+    const buyer = await prisma.buyer.findFirst({
+      where: { auth0Id }
+    });
+    
+    if (!buyer) {
+      return res.status(404).json({ message: "Buyer not found" });
+    }
+    
+    res.status(200).json(buyer);
+  } catch (err) {
+    console.error("Error fetching buyer by Auth0 ID:", err);
+    res.status(500).json({
+      message: "An error occurred while fetching buyer information",
       error: err.message
     });
   }
