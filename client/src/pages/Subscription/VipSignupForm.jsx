@@ -295,7 +295,11 @@ export default function VipSignupForm() {
       }
       
       const data = await response.json();
-      setSuccess(true);
+      navigate('/vip-signup-success', { 
+        state: { 
+          firstName: formData.firstName 
+        } 
+      });
       
       // Clear stored form data after successful submission
       localStorage.removeItem('vipSignupData');
@@ -355,28 +359,6 @@ export default function VipSignupForm() {
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
-
-        {success ? (
-          <Card className="p-8 border-[#3f4f24] bg-[#e8efdc]">
-            <div className="text-center">
-              <div className="bg-[#3f4f24] w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-4">
-                <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <h2 className="text-2xl font-bold text-[#3f4f24] mb-4">You're now on our VIP Buyers List!</h2>
-              <p className="text-lg text-[#324c48] mb-6">
-                Thank you for joining, {formData.firstName}! You'll be among the first to hear about our exclusive property deals and receive special discounts.
-              </p>
-              <Button 
-                onClick={() => navigate('/')}
-                className="bg-[#324c48] hover:bg-[#3f4f24] text-white px-6 py-2"
-              >
-                Return to Homepage
-              </Button>
-            </div>
-          </Card>
-        ) : (
           <Card className="border-[#324c48]/20">
             <CardHeader className="border-b pb-6">
               <CardTitle className="text-xl text-[#3f4f24] flex items-center">
@@ -542,7 +524,6 @@ export default function VipSignupForm() {
               We respect your privacy and will never share your information with third parties.
             </CardFooter>
           </Card>
-        )}
       </div>
     </div>
   );

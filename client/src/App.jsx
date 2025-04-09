@@ -40,8 +40,10 @@ import CreateBuyer from "./components/CreateBuyer/CreateBuyer";
 import EditBuyer from "./components/EditBuyer/EditBuyer";
 import BuyerOffers from "./components/BuyerOffers/BuyerOffers";
 import BuyerLists from "./components/BuyerLists/BuyerLists";
-import { Auth0ProviderWithNavigate } from "./components/Auth0/Auth0Provider";
 import Profile from "./pages/Profile/Profile";
+import VipSignupSuccess from "./pages/Subscription/VipSignupSuccess";
+import { Auth0ProviderWithNavigate } from "./components/Auth0/Auth0Provider";
+
 
 import "react-toastify/dist/ReactToastify.css";
 
@@ -72,6 +74,7 @@ function App() {
                 <Route path="/about-us" element={<AboutUs />} />
                 <Route path="/subscription" element={<Subscription />} />
                 <Route path="/vip-signup" element={<VipSignupForm />} />
+                <Route path="/vip-signup-success" element={<VipSignupSuccess />} />
                 <Route path="/DFW" element={<DFW />} />
                 <Route path="/Austin" element={<Austin />} />
                 <Route path="/Houston" element={<Houston />} />
